@@ -1,0 +1,134 @@
+<h3>New/Edit Instance</h3>
+<hr>
+<div class="action-container">
+    <button id="btn-install" class="btn btn-success" disabled>Install</button>
+    <button id="btn-save" class="btn btn-success" style="display: none;">Save</button>
+    <button id="btn-cancel" class="btn btn-dark">Cancel</button>
+</div>
+<div class="panel">
+    <h5>Instance Options</h5>
+    <hr>
+    <label>Instance Name <span id="instance-name-check" class="text-danger"></span></label>
+    <input id="instance-name" class="form-control bg-dark border-dark text-light" type="text"
+        placeholder="Instance Name (max 20 chars)" required>
+
+    <label>Instance Type</label>
+    <select id="instance-type" class="form-select bg-dark border-dark text-light">
+        <option value="sp" selected>Single Player</option>
+        <option value="client" selected>Multiplayer Client</option>
+        <option value="host">Multiplayer Host</option>
+        <option value="dedicated">Dedicated Server</option>
+    </select>
+
+    <label>Game Version</label>
+    <select id="instance-version" class="form-select bg-dark border-dark text-light">
+        <option value="full">Full Version (Recommended for SP)</option>
+        <option value="multiplayerDemoOfficial">Official Multiplayer Demo (v1.33)</option>
+        <option value="multiplayerDemoUnofficial">Unofficial Multiplayer Demo (Dafoosa's Version)
+        </option>
+        <option value="multiplayerDemoMyg" selected>Unofficial Multiplayer Demo (Myg's Version)
+            (Recommended for MP)</option>
+    </select>
+    <small id="version-hint" class="hint"></small>
+
+    <label>Install Patch</label>
+    <select id="instance-patch" class="form-select bg-dark border-dark text-light">
+        <option value="">Don't apply any Patch</option>
+        <option class="patch-133" value="patch133">Patch v1.33</option>
+        <option class="patch-133" value="patch133fix">Patch v1.33 + Single Player Fix</option>
+        <option value="patch136">Patch v1.36 (Recommended for SP)</option>
+        <option value="patch141">Patch v1.41 (MP Only)</option>
+        <option value="patch142">Patch v1.41 + v1.42 (MP Only)</option>
+        <option value="patch143" selected>Patch v1.43 (MP Only)</option>
+    </select>
+    <small id="patch-hint" style="display: none;" class="hint"><b>Note:</b> The Single Player will not work for this Patch</small>
+
+    <label>Install DgVoodoo (DirectX Graphics Emulator)</label>
+    <select id="instance-dg" class="form-select bg-dark border-dark text-light">
+        <option value="1" selected>Yes (Recommended for modern OSs)</option>
+        <option value="0">No</option>
+
+    </select>
+    <small id="patch-hint" style="display: none;" class="hint"><b>Note:</b> The Single Player will not work for this Patch></small>
+
+    <div id="client-options">
+        <br>
+        <h5>Multiplayer Options</h5>
+        <hr>
+
+        <label>Team</label>
+        <select id="instance-team" class="form-select bg-dark border-dark text-light">
+            <option value="" selected>Not set</option>
+            <option value="auto">Auto</option>
+            <option value="red">Red Team</option>
+            <option value="blue">Blue Team</option>
+        </select>
+
+        <label>Nickname</label>
+        <select id="instance-nickname" id="instance-nickname"
+            class="form-select bg-dark border-dark text-light" type="text">
+            <option value="" selected>Use the CEHub profile</option>
+            <option value="custom">Custom...</option>
+        </select>
+        <input id="instance-custom-nickname" style="display: none;"
+            class="form-control bg-dark border-dark text-light" type="text"
+            placeholder="Enter the nickname">
+    </div>
+
+    <div id="server-options" style="display: none;">
+        <br>
+        <h5>Server Options</h5>
+        <hr>
+
+        <label>Hostname</label>
+        <input id="instance-hostname" class="form-control bg-dark border-dark text-light" type="text"
+            value="" placeholder="Not set">
+
+        <label>Port</label>
+        <input id="instance-port" class="form-control bg-dark border-dark text-light" type="number"
+            min="1" max="65535" step="1" placeholder="Not set">
+
+        <label>Max Players</label>
+        <input id="instance-max-players" class="form-control bg-dark border-dark text-light"
+            type="number" min="2" max="30" step="1" placeholder="Not set">
+
+        <label>Game Type</label>
+        <select id="instance-game-type" class="form-select bg-dark border-dark text-light">
+            <option value="" selected>Not set</option>
+            <option value="deathmatch">Deathmatch</option>
+            <option value="ctf">Capture the Flag</option>
+            <option value="teamplay">Team Play</option>
+        </select>
+
+        <label>Map</label>
+        <select id="instance-map" class="form-select bg-dark border-dark text-light" type="text">
+            <option value="" selected>Not set</option>
+            <option value="noMansLand">No Mans Land</option>
+            <option value="breakpoint">Breakpoint</option>
+            <option value="feverValley">Fever Valley</option>
+            <option value="theAirbase">The Airbase</option>
+            <option value="fortress">Fortress</option>
+            <option value="thePalace">The Palace</option>
+            <option value="carrierWar">Carrier War</option>
+            <option value="custom">Custom...</option>
+        </select>
+        <input id="instance-custom-map" style="display: none;"
+            class="form-control bg-dark border-dark text-light" type="text"
+            placeholder="Enter the map name">
+    </div>
+</div>
+<div id="install-modal" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content bg-dark text-light">
+            <div class="modal-header">
+                <h5 class="modal-title">Installation</h5>
+            </div>
+            <div class="modal-body">
+                <p id="install-text">Installing instance resources...</p>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-finish" class="btn btn-primary" disabled>Please wait...</button>
+            </div>
+        </div>
+    </div>
+</div>
