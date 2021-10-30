@@ -1,0 +1,50 @@
+<h3>Connect (Instance: <span id="instance-name-connect"></span>)</h3>
+<hr>
+<div class="action-container">
+    <button id="btn-cancel-connect" class="btn btn-dark">Cancel</button>
+</div>
+<div class="panel">
+    <div class="container-fluid" style="padding: 0px;">
+        <div class="row g-3">
+            <div class="col col-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
+                <input id="address-direct" class="form-control bg-dark border-dark text-light"
+                    type="text" placeholder="Enter the IP or Hostname" required>
+            </div>
+            <div class="col col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+                <button id="btn-direct-connect" class="btn btn-success" style="width: 100%;" disabled>Join!</button>
+            </div>
+        </div>
+    </div>
+    <br>
+    <h3>Server list</h3>
+    <div class="container-fluid" style="padding: 0px;">
+        <div class="row g-3">
+            <div class="col col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+                <input id="server-name" class="form-control bg-dark border-dark text-light" type="text"
+                    placeholder="Enter the Address name" required>
+            </div>
+            <div class="col col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+                <input id="server-address" class="form-control bg-dark border-dark text-light" type="text"
+                    placeholder="Enter the IP or Hostname" required>
+            </div>
+            <div class="col col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4 mb-3">
+                <button id="btn-address-add" class="btn btn-dark" disabled>Add</button>
+                <button id="refresh-server-list" class="btn btn-dark">Refresh List</button>
+            </div>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-dark">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Address</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="server-list">
+                <!-- Server list -->
+            </tbody>
+        </table>
+    </div>
+</div>

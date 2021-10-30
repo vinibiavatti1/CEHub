@@ -1,0 +1,36 @@
+{
+  "name": "cehub",
+  "version": "0.0.1-alpha",
+  "description": "Codename Eagle Instance Manager",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "build": {
+	"appId": "com.codenameeaglemultiplayer.cehub"
+  },
+  "repository": "https://github.com/vinibiavatti1/CEHub",
+  "keywords": [
+    "Codename Eagle",
+	"CE",
+	"codenameeaglemultiplayer",
+	"Battlefield",
+	"Instance",
+	"Manager",
+  ],
+  "author": "Vinícius Reif Biavatti",
+  "license": "CC0-1.0",
+  "devDependencies": {
+    "electron": "^15.1.1",
+    "eslint": "^8.0.0"
+  },
+  "dependencies": {
+    "@popperjs/core": "^2.10.2",
+    "adm-zip": "^0.5.9",
+    "angular": "^1.8.2",
+    "bootstrap": "^5.1.2",
+    "electron-builder": "^22.13.1",
+    "jquery": "^3.6.0",
+    "popper.js": "^1.16.1"
+  }
+}

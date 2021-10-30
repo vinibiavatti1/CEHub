@@ -1,2 +1,3 @@
-node_modules
-instances/*
+# Folders
+.venv
+__pycache__

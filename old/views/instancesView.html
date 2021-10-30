@@ -1,0 +1,43 @@
+<h3>Instances</h3>
+<hr>
+<div class="action-container">
+    <button id="btn-add" class="btn btn-dark">Add</button>
+    <button id="btn-edit" class="btn btn-dark" disabled>Edit</button>
+    <button id="btn-delete" class="btn btn-dark" disabled>Delete</button>
+    <button id="btn-open-folder" class="btn btn-dark" disabled>Folder</button>
+    <button id="btn-open-dg" class="btn btn-dark" disabled>DgVoodoo</button>
+    <span class="separator"></span>
+    <button id="btn-run" class="btn btn-success" disabled>Run</button>
+    <button id="btn-connect" class="btn btn-success" disabled>Connect</button>
+    <span class="separator"></span>
+    <button id="btn-refresh" class="btn btn-dark">Refresh</button>
+</div>
+<div class="container-fluid p-0">
+    <div id="no-instance-message" class="row g-2">
+        <div class="col col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+            <div class="panel">
+                There are no instances yet. Please, <a id="btn-quick-add" href="#">Add</a> a new one and
+                start playing!
+            </div>
+        </div>
+    </div>
+    <div id="instances" class="row g-2">
+        <!-- Instance List -->
+    </div>
+</div>
+<template id="instance-template">
+    <div class="col col-12 col-sm-12 col-md-4 col-lg-3 col-xl-3">
+        <div class="panel instance-panel" data-name="{instanceName}" data-type="{instanceTypeId}">
+            <img class="instance-icon" src="./resources/logo.png">
+            <hr style="margin-bottom: 0px;">
+            {instanceName}
+            <hr>
+            <p class="instance-desc">
+                {instanceVersion}<br>
+                {instanceType}<br>
+                {instancePatch}
+            </p>
+            <small class="text-warning">{errorMessage}</small>
+        </div>
+    </div>
+</template>

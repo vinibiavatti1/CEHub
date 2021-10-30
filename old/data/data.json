@@ -1,0 +1,11 @@
+{
+    "profile": {
+        "name": "CE Player"
+    },
+    "instances": {
+    },
+    "servers": {
+        "codenameeaglemultiplayer.com": "89.38.98.12:24711",
+        "localhost": "127.0.0.1"
+    }
+}
