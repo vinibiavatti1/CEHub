@@ -9,7 +9,7 @@ APP_DIR = sys.path[0]
 
 class PathUtils:
     INSTANCE_PATH = os.path.join(APP_DIR, 'instances')
-    GAME_ZIPS_PATH = os.path.join(APP_DIR, 'game_zips')
+    GAME_ZIPS_PATH = os.path.join(APP_DIR, 'game')
     DATA_PATH = os.path.join(APP_DIR, 'data')
     DAT_FILE: str = os.path.join(DATA_PATH, 'data.dat')
 
