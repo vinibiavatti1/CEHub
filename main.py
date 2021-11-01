@@ -1,6 +1,16 @@
+import sys
+from PyQt5.QtWidgets import QApplication
+from project.main_window import MainWindow
+from project.services.data_service import DataService
+
+
 # Main
 def main():
-    pass
+    DataService.load_data()
+    app = QApplication(sys.argv)
+    main_window = MainWindow()
+    main_window.show()
+    sys.exit(app.exec_())
 
 
 # Init
