@@ -375,6 +375,7 @@ instance?'
             try:
                 SetupService.delete_instance(self.current_instance)
                 self.central_widget.refresh()
+                self.set_state(MainWindow.STATE_NORMAL)
             except Exception as err:
                 print(err)
                 message = QMessageBox()

@@ -1,18 +1,16 @@
 from project.models.data_model import DataModel
 from project.utils.path_utils import PathUtils
 import pickle
-import os
 import sys
 
 
 class DataService:
-    DAT_FILE: str = PathUtils.DAT_FILE
     data: DataModel = None
 
     @classmethod
     def load_data(cls, retry=True) -> None:
         try:
-            with open(cls.DAT_FILE, 'rb') as f:
+            with open(PathUtils.get_data_file_path(), 'rb') as f:
                 cls.data = pickle.load(f)
         except Exception as err:
             print(err)
@@ -27,7 +25,7 @@ class DataService:
     @classmethod
     def reset_data_file(cls) -> None:
         initial_data = DataModel()
-        with open(cls.DAT_FILE, 'wb') as f:
+        with open(PathUtils.get_data_file_path(), 'wb') as f:
             pickle.dump(initial_data, f)
 
     @classmethod
@@ -37,5 +35,5 @@ class DataService:
     @classmethod
     def save_data(cls, data):
         cls.data = data
-        with open(cls.DAT_FILE, 'wb') as f:
+        with open(PathUtils.get_data_file_path(), 'wb') as f:
             pickle.dump(data, f)
