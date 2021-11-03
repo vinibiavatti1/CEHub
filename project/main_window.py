@@ -11,10 +11,12 @@ from PyQt5.QtWidgets import (
     QStatusBar,
     QToolBar,
 )
+from project.enums.instance_type_enum import InstanceTypeEnum
 from project.models.instance_model import InstanceModel
 from project.services.data_service import DataService
 from project.services.process_service import ProcessService
 from project.services.setup_service import SetupService
+from project.widgets.about_frame import AboutFrame
 from project.widgets.instance_button import InstanceButton
 from project.utils.path_utils import PathUtils
 from project import qrc_resources
@@ -34,6 +36,7 @@ class MainWindow(QMainWindow):
     STATE_EDIT = 2
     STATE_INSTANCE_SELECTED = 3
     STATE_RUN = 4
+    STATE_ABOUT = 5
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
@@ -51,7 +54,6 @@ class MainWindow(QMainWindow):
         self.update_window_title()
         self.set_state(MainWindow.STATE_NORMAL)
 
-
     ###########################################################################
     # GUI Build
     ###########################################################################
@@ -67,31 +69,33 @@ class MainWindow(QMainWindow):
 
     def register_actions(self) -> None:
         self.add_action = \
-            QAction(QIcon(':add-icon'), '&Add Instance', self)
+            QAction(QIcon(':add-icon'), 'Add Instance', self)
         self.edit_action = \
-            QAction(QIcon(':edit-icon'), '&Edit Instance', self)
+            QAction(QIcon(':edit-icon'), 'Edit Instance', self)
         self.delete_action = \
-            QAction(QIcon(':delete-icon'), '&Delete Instance', self)
+            QAction(QIcon(':delete-icon'), 'Delete Instance', self)
         self.open_folder_action = \
-            QAction(QIcon(':open-folder-icon'), 'Open &Folder', self)
+            QAction(QIcon(':open-folder-icon'), 'Open Folder', self)
         self.open_dg_action = \
-            QAction(QIcon(':open-dg-icon'), 'Open Dg&Voodoo', self)
+            QAction(QIcon(':open-dg-icon'), 'Open Dg&oodoo', self)
         self.run_action = \
-            QAction(QIcon(':run-icon'), '&Run Instance', self)
+            QAction(QIcon(':run-icon'), 'Run Instance', self)
         self.connect_action = \
-            QAction(QIcon(':connect-icon'), '&Connect', self)
+            QAction(QIcon(':connect-icon'), 'Connect', self)
         self.refresh_action = \
-            QAction(QIcon(':refresh-icon'), '&Refresh', self)
+            QAction(QIcon(':refresh-icon'), 'Refresh', self)
         self.save_action = \
-            QAction(QIcon(':save-icon'), '&Save', self)
+            QAction(QIcon(':save-icon'), 'Save', self)
         self.cancel_action = \
-            QAction(QIcon(':cancel-icon'), '&Cancel', self)
+            QAction(QIcon(':cancel-icon'), 'Cancel', self)
         self.setup_action = \
-            QAction(QIcon(':setup-icon'), '&Setup', self)
+            QAction(QIcon(':setup-icon'), 'Setup', self)
         self.change_nickname_action = \
-            QAction(QIcon(':profile-icon'), '&Change Nickname', self)
+            QAction(QIcon(':profile-icon'), 'Change Nickname', self)
         self.kill_process_action = \
-            QAction(QIcon(':stop-icon'), '&Kill CE and Lobby Process', self)
+            QAction(QIcon(':stop-icon'), 'Kill CE and Lobby Process', self)
+        self.about_action = \
+            QAction(QIcon(':about-icon'), 'About CEHub', self)
 
     def create_toolbar(self) -> None:
         toolbar = QToolBar('toolbar', self)
@@ -103,6 +107,7 @@ class MainWindow(QMainWindow):
         toolbar.addAction(self.delete_action)
         toolbar.addSeparator()
         toolbar.addAction(self.run_action)
+        toolbar.addAction(self.connect_action)
         toolbar.addSeparator()
         toolbar.addAction(self.open_folder_action)
         toolbar.addAction(self.open_dg_action)
@@ -124,6 +129,7 @@ class MainWindow(QMainWindow):
         instance_menu.addAction(self.delete_action)
         instance_menu.addSeparator()
         instance_menu.addAction(self.run_action)
+        instance_menu.addAction(self.connect_action)
 
         open_menu = QMenu('Open', self)
         open_menu.addAction(self.open_folder_action)
@@ -141,6 +147,7 @@ class MainWindow(QMainWindow):
         profile_menu.addAction(self.change_nickname_action)
 
         about_menu = QMenu('About', self)
+        about_menu.addAction(self.about_action)
 
         menubar.addMenu(instance_menu)
         menubar.addMenu(open_menu)
@@ -189,12 +196,10 @@ Lobby process: {lobby_process}'
         self.refresh_action.setDisabled(True)
         self.save_action.setDisabled(True)
         self.cancel_action.setDisabled(True)
-        self.kill_process_action.setDisabled(True)
         self.setup_action.setDisabled(True)
         if state == MainWindow.STATE_NORMAL:
             self.add_action.setDisabled(False)
             self.refresh_action.setDisabled(False)
-            self.kill_process_action.setDisabled(False)
             self.set_stylesheets()
         elif state == MainWindow.STATE_ADD:
             self.cancel_action.setDisabled(False)
@@ -209,11 +214,13 @@ Lobby process: {lobby_process}'
             self.open_folder_action.setDisabled(False)
             self.open_dg_action.setDisabled(False)
             self.run_action.setDisabled(False)
-            self.connect_action.setDisabled(False)
+            if self.current_instance.type == InstanceTypeEnum.CLIENT.value:
+                self.connect_action.setDisabled(False)
             self.refresh_action.setDisabled(False)
             self.cancel_action.setDisabled(False)
-            self.kill_process_action.setDisabled(False)
         elif state == MainWindow.STATE_RUN:
+            self.cancel_action.setDisabled(False)
+        elif state == MainWindow.STATE_ABOUT:
             self.cancel_action.setDisabled(False)
 
     ###########################################################################
@@ -264,11 +271,26 @@ Lobby process: {lobby_process}'
             self.handle_open_dg_action
         )
         self.run_action.triggered.connect(
-            self.handle_run_action
+            lambda: self.handle_run_action(False)
+        )
+        self.connect_action.triggered.connect(
+            lambda: self.handle_run_action(True)
+        )
+        self.about_action.triggered.connect(
+            self.handle_about_action
         )
 
-    def handle_run_action(self) -> None:
-        self.central_widget = InstanceRunFrame(self, self.current_instance)
+    def handle_about_action(self) -> None:
+        self.central_widget = AboutFrame(
+            self
+        )
+        self.setCentralWidget(self.central_widget)
+        self.set_state(MainWindow.STATE_ABOUT)
+
+    def handle_run_action(self, connect_tab: bool) -> None:
+        self.central_widget = InstanceRunFrame(
+            self, self.current_instance, connect_tab
+        )
         self.setCentralWidget(self.central_widget)
         self.set_state(MainWindow.STATE_RUN)
 
@@ -325,8 +347,12 @@ Lobby process: {lobby_process}'
 
     def handle_cancel_action(self) -> None:
         if self.state == MainWindow.STATE_INSTANCE_SELECTED:
+            for btn in self.central_widget.buttons:
+                btn.deselect()
             self.set_state(MainWindow.STATE_NORMAL)
         elif self.state == MainWindow.STATE_RUN:
+            self.go_instance_list()
+        elif self.state == MainWindow.STATE_ABOUT:
             self.go_instance_list()
         else:
             confirm = QMessageBox()

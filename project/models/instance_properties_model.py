@@ -14,6 +14,9 @@ class InstancePropertiesModel:
         self._map: str = None
         self._custom_map: bool = False
 
+        # Connection
+        self._last_connection_index: int = None
+
     ###########################################################################
     # Properties
     ###########################################################################
@@ -58,6 +61,10 @@ class InstancePropertiesModel:
     def custom_map(self) -> bool:
         return self._custom_map
 
+    @property
+    def last_connection_index(self) -> int:
+        return self._last_connection_index
+
     @team.setter
     def team(self, _team: str) -> None:
         self._team = _team
@@ -97,3 +104,7 @@ class InstancePropertiesModel:
     @custom_map.setter
     def custom_map(self, _custom: bool) -> None:
         self._custom_map = _custom
+
+    @last_connection_index.setter
+    def last_connection_index(self, _index: int) -> None:
+        self._last_connection_index = _index

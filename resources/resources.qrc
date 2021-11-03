@@ -21,5 +21,6 @@
         <file alias="play-icon">icons/resultset_next.png</file>
         <file alias="address-add-icon">icons/world_add.png</file>
         <file alias="address-delete-icon">icons/world_delete.png</file>
+        <file alias="about-icon">icons/information.png</file>
     </qresource>
 </RCC>

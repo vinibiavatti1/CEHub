@@ -1,5 +1,12 @@
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon, QTextBlock
+from PyQt5.QtGui import QIcon
+from project.enums.instance_type_enum import InstanceTypeEnum
+from project.models.connection_model import ConnectionModel
+from project.models.instance_model import InstanceModel
+from project.services.data_service import DataService
+from project.utils.path_utils import PathUtils
+from project.services.command_line_service import CommandLineService
+from project.services.process_service import ProcessService
 from PyQt5.QtWidgets import (
     QComboBox,
     QFrame,
@@ -8,31 +15,28 @@ from PyQt5.QtWidgets import (
     QLabel,
     QLineEdit,
     QMessageBox,
-    QPlainTextEdit,
     QPushButton,
-    QScrollArea,
-    QTabBar,
     QTabWidget,
-    QTextEdit,
     QVBoxLayout,
     QWidget
 )
-from project.models.connection_model import ConnectionModel
-from project.models.instance_model import InstanceModel
-from project.services.data_service import DataService
-from project.utils.path_utils import PathUtils
+import os
 
 
 class InstanceRunFrame(QFrame):
-    def __init__(self, main_window, instance: InstanceModel) -> None:
+    def __init__(self, main_window, instance: InstanceModel,
+                 connect_tab: bool) -> None:
         super().__init__(main_window, objectName='frame')
         self.main_window = main_window
         self.instance = instance
-        self.create_layout()
+        self.create_layout(connect_tab)
         self.refresh_addresses()
         self.register_handlers()
+        self.refresh_run_arguments()
+        if instance.type == InstanceTypeEnum.CLIENT.value:
+            self.refresh_connect_arguments()
 
-    def create_layout(self) -> None:
+    def create_layout(self, connect_tab: bool) -> None:
         self.grid = QVBoxLayout()
         self.grid.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.setLayout(self.grid)
@@ -60,6 +64,12 @@ class InstanceRunFrame(QFrame):
         self.tabs.addTab(self.tab_run, QIcon(':run-icon'), 'Run')
         self.tabs.addTab(self.tab_connect, QIcon(':connect-icon'), 'Connect')
         self.grid.addWidget(self.tabs)
+        if self.instance.type != InstanceTypeEnum.CLIENT.value:
+            self.tab_connect.setDisabled(True)
+
+        # Select tab
+        if connect_tab:
+            self.tabs.setCurrentIndex(1)
 
         # Tab Run
         self.grid_tab_run = QVBoxLayout()
@@ -69,7 +79,6 @@ class InstanceRunFrame(QFrame):
         # Arguments Run
         self.grid_tab_run.addWidget(QLabel('Command Line', self))
         self.command_line_field = QLineEdit(self)
-        self.command_line_field.setText('ce.exe +host')
         self.grid_tab_run.addWidget(self.command_line_field)
 
         # Actions
@@ -128,6 +137,34 @@ class InstanceRunFrame(QFrame):
             self.addresses_field.addItem(
                 f'{connection.name} ({connection.address})'
             )
+        if self.instance.properties.last_connection_index is not None:
+            index = self.instance.properties.last_connection_index
+            if index < self.addresses_field.count():
+                self.addresses_field.setCurrentIndex(
+                    self.instance.properties.last_connection_index
+                )
+                self.handle_addresses_change()
+
+    def refresh_run_arguments(self) -> None:
+        instance_type = self.instance.type
+        if instance_type == InstanceTypeEnum.CLIENT.value or \
+                instance_type == InstanceTypeEnum.SP.value:
+            self.command_line_field.setText(
+                CommandLineService.CE_EXE_NAME
+            )
+            return
+        profile = DataService.get_data().profile.nickname
+        arguments = CommandLineService.generate_arguments(
+            self.instance, profile
+        )
+        self.command_line_field.setText(arguments)
+
+    def refresh_connect_arguments(self) -> None:
+        profile = DataService.get_data().profile.nickname
+        arguments = CommandLineService.generate_arguments(
+            self.instance, profile, self.address_field.text()
+        )
+        self.command_line_connect_field.setText(arguments)
 
     ###########################################################################
     # Handlers
@@ -143,12 +180,54 @@ class InstanceRunFrame(QFrame):
         self.addresses_field.currentTextChanged.connect(
             self.handle_addresses_change
         )
+        self.connect_button.clicked.connect(
+            self.handle_connect
+        )
+        self.run_button.clicked.connect(
+            self.handle_run
+        )
+        self.address_field.textChanged.connect(
+            self.handle_address_change
+        )
+
+    def handle_run(self) -> None:
+        try:
+            ProcessService.execute(
+                PathUtils.get_instance_path(self.instance.name),
+                self.command_line_field.text()
+            )
+        except Exception as err:
+            message = QMessageBox()
+            message.critical(self, 'Error', str(err))
+        self.main_window.refresh_statusbar_message()
+
+    def handle_connect(self) -> None:
+        data = DataService.get_data()
+        for instance in data.instances:
+            if instance.name == self.instance.name:
+                instance.properties.last_connection_index = \
+                    self.addresses_field.currentIndex()
+                break
+        DataService.save_data(data)
+        try:
+            ProcessService.execute(
+                PathUtils.get_instance_path(self.instance.name),
+                self.command_line_connect_field.text()
+            )
+        except Exception as err:
+            message = QMessageBox()
+            message.critical(self, 'Error', str(err))
+        self.main_window.refresh_statusbar_message()
+
+    def handle_address_change(self) -> None:
+        self.refresh_connect_arguments()
 
     def handle_addresses_change(self) -> None:
         if self.addresses_field.currentIndex() == 0:
             self.address_field.setText('')
             return
-        connection = DataService.get_data().connections[
+        data = DataService.get_data()
+        connection = data.connections[
             self.addresses_field.currentIndex() - 1
         ]
         self.address_field.setText(connection.address)

@@ -1,19 +1,3 @@
-"""
-Command line arguments:
-
-+connect 132.42.12.1:24711
-
-+host [PORT_VALUE]
-+maxplayers 2-30
-+hostname "internal war"
-+map "no mans land"
-+game"deathmatch" [values: deathmatch,ctf or teamplay]
-+dedicated"
-
-+name "joe black"
-+team "red" [values: red,blue or auto]
-"""
-
 from PyQt5.QtCore import QLine, Qt
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtWidgets import (
