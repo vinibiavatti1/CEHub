@@ -8,6 +8,7 @@ class DataModel:
         self._profile: ProfileModel = ProfileModel()
         self._instances: list[InstanceModel] = []
         self._connections: list[ConnectionModel] = []
+        self._register_default_connections()
 
     ###########################################################################
     # Properties
@@ -26,7 +27,7 @@ class DataModel:
         return self._connections
 
     ###########################################################################
-    # Methods
+    # Public methods
     ###########################################################################
 
     def add_instance(self, instance: InstanceModel) -> None:
@@ -62,3 +63,15 @@ class DataModel:
         for i in range(len(self._connections)):
             if self._connections[i].name == connection_name:
                 return self._connections.pop(i)
+
+    ###########################################################################
+    # Private methods
+    ###########################################################################
+
+    def _register_default_connections(self) -> None:
+        self._connections.append(
+            ConnectionModel(
+                'codenameeaglemultiplayer.com',
+                '89.38.98.12:24711'
+            )
+        )
