@@ -3,13 +3,16 @@ class InstancePropertiesModel:
         # Client
         self._team: str = None
         self._nickname: str = None
+        self._custom_nickname: bool = False
 
         # Server
         self._hostname: str = None
         self._port: int = None
+        self._custom_port: bool = False
         self._max_players: int = None
         self._game_type: str = None
         self._map: str = None
+        self._custom_map: bool = False
 
     ###########################################################################
     # Properties
@@ -43,6 +46,18 @@ class InstancePropertiesModel:
     def map(self) -> str:
         return self._map
 
+    @property
+    def custom_nickname(self) -> bool:
+        return self._custom_nickname
+
+    @property
+    def custom_port(self) -> bool:
+        return self._custom_port
+
+    @property
+    def custom_map(self) -> bool:
+        return self._custom_map
+
     @team.setter
     def team(self, _team: str) -> None:
         self._team = _team
@@ -70,3 +85,15 @@ class InstancePropertiesModel:
     @map.setter
     def map(self, _map: str) -> None:
         self._map = _map
+
+    @custom_nickname.setter
+    def custom_nickname(self, _custom: bool) -> None:
+        self._custom_nickname = _custom
+
+    @custom_port.setter
+    def custom_port(self, _custom: bool) -> None:
+        self._custom_port = _custom
+
+    @custom_map.setter
+    def custom_map(self, _custom: bool) -> None:
+        self._custom_map = _custom

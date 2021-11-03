@@ -2,9 +2,11 @@ from project.enums.game_zip_enum import GameZipEnum as ZipEnum
 from project.enums.instance_patch_enum import InstancePatchEnum
 from project.enums.instance_version_enum import InstanceVersionEnum
 from project.models.instance_model import InstanceModel
+from project.services.data_service import DataService
 from project.utils.path_utils import PathUtils
 import zipfile
 import os
+import shutil
 
 
 class SetupService:
@@ -29,6 +31,22 @@ class SetupService:
         elif instance.version == InstanceVersionEnum.MP_DEMO_MYG.value:
             cls._install_mp_demo_myg(instance)
         cls._unzip_game_file(ZipEnum.ZIP_DGVOODOO, instance.name)
+
+    @classmethod
+    def delete_instance(cls, instance: InstanceModel) -> None:
+        """
+        Delete an instance by its name from /instance folder and form data
+        """
+        instance_path = PathUtils.get_instance_path(instance.name)
+        if os.path.exists(instance_path):
+            shutil.rmtree(instance_path)
+        data = DataService.get_data()
+        for instance_ in data.instances:
+            if instance_.name == instance.name:
+                data.instances.remove(instance_)
+                break
+        DataService.save_data(data)
+
 
     ###########################################################################
     # Private methods

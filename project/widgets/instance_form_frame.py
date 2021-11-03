@@ -49,7 +49,7 @@ class InstanceFormFrame(QFrame):
 
     DEFAULT_HOST_PORT = 24711
 
-    def __init__(self, parent) -> None:
+    def __init__(self, parent, instance_edit: InstanceModel = None) -> None:
         super().__init__(parent, objectName='form')
         self.create_layout()
         self.build_instance_form()
@@ -57,6 +57,9 @@ class InstanceFormFrame(QFrame):
         self.build_client_form()
         self.register_handlers()
         self.handle_instance_type_field_change(InstanceTypeEnum.SP.value)
+        self.instance_edit = instance_edit
+        if self.instance_edit is not None:
+            self.fill_form()
 
     def create_layout(self):
         layout = QVBoxLayout()
@@ -201,6 +204,63 @@ class InstanceFormFrame(QFrame):
         # Focus
         self.instance_name_field.setFocus()
 
+    def fill_form(self) -> None:
+        props = self.instance_edit.properties
+        # Instance Tab
+        self.instance_name_field.setText(
+            self.instance_edit.name
+        )
+        self.instance_name_field.setDisabled(True)
+        self.instance_type_field.setCurrentText(
+            self.instance_edit.type
+        )
+        self.instance_type_field.setDisabled(True)
+        self.instance_version_field.setCurrentText(
+            self.instance_edit.version
+        )
+        self.instance_version_field.setDisabled(True)
+        self.instance_patch_field.setCurrentText(
+            self.instance_edit.patch
+        )
+        self.instance_patch_field.setDisabled(True)
+
+        # Client tab
+        self.instance_team_field.setCurrentText(
+            props.team
+        )
+        self.instance_nickname_field.setCurrentIndex(0)
+        if props.custom_nickname:
+            self.instance_nickname_field.setCurrentIndex(1)
+            self.instance_custom_nickname_field.setText(
+                props.nickname
+            )
+
+        # Server tab
+        self.instance_host_field.setCurrentIndex(0)
+        if props.custom_port:
+            self.instance_host_field.setCurrentIndex(1)
+            self.instance_custom_host_field.setValue(
+                props.port
+            )
+        self.instance_max_players_field.setValue(
+            props.max_players
+        )
+        self.instance_host_name_field.setText(
+            props.hostname
+        )
+        if props.custom_map:
+            self.instance_map_field.setCurrentIndex(7)
+            self.instance_custom_map_field.setText(
+                props.map
+            )
+        else:
+            self.instance_map_field.setCurrentText(
+                props.map
+            )
+        self.instance_game_type_field.setCurrentText(
+            props.game_type
+        )
+
     ###########################################################################
     # Handlers
     ###########################################################################
@@ -286,7 +346,7 @@ class InstanceFormFrame(QFrame):
 
     def validate_instance_form(self) -> None:
         instance_name = self.instance_name_field.text()
-        if not instance_name:
+        if len(instance_name.strip()) == 0:
             self.instance_name_field.setFocus()
             self.tabs.setCurrentIndex(0)
             raise ValueError('The instance name is required')
@@ -371,7 +431,22 @@ class InstanceFormFrame(QFrame):
 
     def save(self):
         if self.validate_forms(True):
-            pass
+            confirm = QMessageBox()
+            answer = confirm.question(
+                self,
+                'Confirmation',
+                'Save changes?'
+            )
+            if answer == QMessageBox.Yes:
+                instance = self.create_model()
+                data = DataService.get_data()
+                for instance_ in data.instances:
+                    if instance_.name == instance.name:
+                        data.instances.remove(instance_)
+                        data.instances.append(instance)
+                        break
+                DataService.save_data(data)
+                self.parent().go_instance_list()
 
     def create_model(self) -> InstanceModel:
         instance_properties = InstancePropertiesModel()
@@ -388,22 +463,24 @@ class InstanceFormFrame(QFrame):
 
         # Custom data
         if self.instance_host_field.currentText() == 'Custom...':
+            instance_properties.custom_port = True
             instance_properties.port = \
                 self.instance_custom_host_field.value()
         else:
-            instance_properties.port = \
-                    InstanceFormFrame.DEFAULT_HOST_PORT
+            instance_properties.port = None
         if self.instance_map_field.currentText() == 'Custom...':
+            instance_properties.custom_map = True
             instance_properties.map = \
                 self.instance_custom_map_field.text()
         else:
             instance_properties.map = \
                 self.instance_map_field.currentText()
         if self.instance_nickname_field.currentText() == 'Custom...':
+            instance_properties.custom_nickname = True
             instance_properties.nickname = \
                 self.instance_custom_nickname_field.text()
         else:
-            instance_properties.nickname = None # TODO Get nickname from profile
+            instance_properties.nickname = None
 
         # General data
         instance = InstanceModel(

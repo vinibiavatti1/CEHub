@@ -2,20 +2,24 @@
 <RCC version="1.0">
     <qresource>
         <file alias="bg">images/bg.png</file>
-        <file alias="add-icon">icons/brick_add.png</file>
-        <file alias="edit-icon">icons/brick_edit.png</file>
-        <file alias="delete-icon">icons/brick_delete.png</file>
+        <file alias="add-icon">icons/cd_add.png</file>
+        <file alias="edit-icon">icons/cd_edit.png</file>
+        <file alias="delete-icon">icons/cd_delete.png</file>
         <file alias="open-folder-icon">icons/folder_explore.png</file>
-        <file alias="open-dg-icon">icons/monitor_edit.png</file>
-        <file alias="run-icon">icons/brick_go.png</file>
+        <file alias="open-dg-icon">icons/monitor.png</file>
+        <file alias="run-icon">icons/cd_go.png</file>
         <file alias="connect-icon">icons/world_go.png</file>
         <file alias="refresh-icon">icons/arrow_refresh.png</file>
-        <file alias="instance-icon">icons/brick.png</file>
+        <file alias="instance-icon">icons/cd.png</file>
         <file alias="save-icon">icons/disk.png</file>
         <file alias="cancel-icon">icons/cancel.png</file>
         <file alias="setup-icon">icons/computer_go.png</file>
         <file alias="ce-icon">images/ce_icon.png</file>
         <file alias="profile-icon">icons/user_edit.png</file>
         <file alias="stop-icon">icons/stop.png</file>
+        <file alias="warn-icon">icons/error.png</file>
+        <file alias="play-icon">icons/resultset_next.png</file>
+        <file alias="address-add-icon">icons/world_add.png</file>
+        <file alias="address-delete-icon">icons/world_delete.png</file>
     </qresource>
 </RCC>

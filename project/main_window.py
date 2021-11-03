@@ -14,14 +14,17 @@ from PyQt5.QtWidgets import (
 from project.models.instance_model import InstanceModel
 from project.services.data_service import DataService
 from project.services.process_service import ProcessService
+from project.services.setup_service import SetupService
 from project.widgets.instance_button import InstanceButton
+from project.utils.path_utils import PathUtils
 from project import qrc_resources
 from project.stylesheet import stylesheet
 from project.widgets.instance_list_frame import InstanceListFrame
 from project.widgets.instance_form_frame import InstanceFormFrame
+from project.widgets.instance_run_frame import InstanceRunFrame
 from project.app_info import AppInfo
 import psutil
-
+import os
 
 
 class MainWindow(QMainWindow):
@@ -30,6 +33,7 @@ class MainWindow(QMainWindow):
     STATE_ADD = 1
     STATE_EDIT = 2
     STATE_INSTANCE_SELECTED = 3
+    STATE_RUN = 4
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
@@ -98,11 +102,10 @@ class MainWindow(QMainWindow):
         toolbar.addAction(self.edit_action)
         toolbar.addAction(self.delete_action)
         toolbar.addSeparator()
+        toolbar.addAction(self.run_action)
+        toolbar.addSeparator()
         toolbar.addAction(self.open_folder_action)
         toolbar.addAction(self.open_dg_action)
-        toolbar.addSeparator()
-        toolbar.addAction(self.run_action)
-        toolbar.addAction(self.connect_action)
         toolbar.addSeparator()
         toolbar.addAction(self.kill_process_action)
         toolbar.addAction(self.refresh_action)
@@ -119,14 +122,12 @@ class MainWindow(QMainWindow):
         instance_menu.addAction(self.add_action)
         instance_menu.addAction(self.edit_action)
         instance_menu.addAction(self.delete_action)
+        instance_menu.addSeparator()
+        instance_menu.addAction(self.run_action)
 
         open_menu = QMenu('Open', self)
         open_menu.addAction(self.open_folder_action)
         open_menu.addAction(self.open_dg_action)
-
-        execution_menu = QMenu('Execution', self)
-        execution_menu.addAction(self.run_action)
-        execution_menu.addAction(self.connect_action)
 
         actions_menu = QMenu('Actions', self)
         actions_menu.addAction(self.save_action)
@@ -143,7 +144,6 @@ class MainWindow(QMainWindow):
 
         menubar.addMenu(instance_menu)
         menubar.addMenu(open_menu)
-        menubar.addMenu(execution_menu)
         menubar.addMenu(actions_menu)
         menubar.addMenu(profile_menu)
         menubar.addMenu(about_menu)
@@ -201,7 +201,7 @@ Lobby process: {lobby_process}'
             self.setup_action.setDisabled(False)
         elif state == MainWindow.STATE_EDIT:
             self.cancel_action.setDisabled(False)
-            self.setup_action.setDisabled(False)
+            self.save_action.setDisabled(False)
         elif state == MainWindow.STATE_INSTANCE_SELECTED:
             self.add_action.setDisabled(False)
             self.edit_action.setDisabled(False)
@@ -213,6 +213,8 @@ Lobby process: {lobby_process}'
             self.refresh_action.setDisabled(False)
             self.cancel_action.setDisabled(False)
             self.kill_process_action.setDisabled(False)
+        elif state == MainWindow.STATE_RUN:
+            self.cancel_action.setDisabled(False)
 
     ###########################################################################
     # Redirects
@@ -255,6 +257,38 @@ Lobby process: {lobby_process}'
         self.refresh_action.triggered.connect(
             self.handle_refresh_action
         )
+        self.open_folder_action.triggered.connect(
+            self.handle_open_folder_action
+        )
+        self.open_dg_action.triggered.connect(
+            self.handle_open_dg_action
+        )
+        self.run_action.triggered.connect(
+            self.handle_run_action
+        )
+
+    def handle_run_action(self) -> None:
+        self.central_widget = InstanceRunFrame(self, self.current_instance)
+        self.setCentralWidget(self.central_widget)
+        self.set_state(MainWindow.STATE_RUN)
+
+    def handle_open_folder_action(self) -> None:
+        if self.current_instance is not None:
+            instance_path = \
+                PathUtils.get_instance_path(self.current_instance.name)
+            if os.path.exists(instance_path):
+                os.startfile(instance_path)
+            else:
+                message = QMessageBox()
+                message.critical(
+                    self, 'Error', 'The instance folder was not found'
+                )
+
+    def handle_open_dg_action(self) -> None:
+        if self.current_instance is not None:
+            instance_path = \
+                PathUtils.get_instance_path(self.current_instance.name)
+            os.startfile(os.path.join(instance_path, 'dgVoodooCpl.exe'))
 
     def handle_refresh_action(self) -> None:
         self.refresh_statusbar_message()
@@ -279,7 +313,7 @@ Lobby process: {lobby_process}'
         self.set_state(MainWindow.STATE_ADD)
 
     def handle_edit_action(self) -> None:
-        self.central_widget = InstanceFormFrame(self)
+        self.central_widget = InstanceFormFrame(self, self.current_instance)
         self.setCentralWidget(self.central_widget)
         self.set_state(MainWindow.STATE_EDIT)
 
@@ -291,7 +325,9 @@ Lobby process: {lobby_process}'
 
     def handle_cancel_action(self) -> None:
         if self.state == MainWindow.STATE_INSTANCE_SELECTED:
-            self.set_current_instance(None)
+            self.set_state(MainWindow.STATE_NORMAL)
+        elif self.state == MainWindow.STATE_RUN:
+            self.go_instance_list()
         else:
             confirm = QMessageBox()
             if confirm.question(
@@ -300,7 +336,23 @@ Lobby process: {lobby_process}'
                 self.go_instance_list()
 
     def handle_delete_action(self) -> None:
-        print('asd')
+        if self.current_instance is None:
+            return
+        question = QMessageBox()
+        answer = question.question(
+            self,
+            'Confirmation',
+            f'Do you really want to delete the "{self.current_instance.name}" \
+instance?'
+        )
+        if answer == QMessageBox.Yes:
+            try:
+                SetupService.delete_instance(self.current_instance)
+                self.central_widget.refresh()
+            except Exception as err:
+                print(err)
+                message = QMessageBox()
+                message.critical(self, 'Error', str(err))
 
     def handle_change_nickname(self) -> None:
         data = DataService.get_data()
@@ -341,7 +393,7 @@ Lobby process: {lobby_process}'
         for widget in self.central_widget.buttons:
             widget.deselect()
         self.current_instance = instance
-        if instance != None:
+        if instance is not None:
             self.set_state(MainWindow.STATE_INSTANCE_SELECTED)
         else:
             self.set_state(MainWindow.STATE_NORMAL)

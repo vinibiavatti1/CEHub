@@ -1,6 +1,9 @@
+from project.models.instance_properties_model import InstancePropertiesModel
+
+
 class InstanceModel:
     def __init__(self, name: str, version: str, type: str, patch: str,
-                 properties: str) -> None:
+                 properties: InstancePropertiesModel) -> None:
         self._name = name
         self._version = version
         self._type = type
@@ -28,5 +31,5 @@ class InstanceModel:
         return self._patch
 
     @property
-    def properties(self) -> str:
+    def properties(self) -> InstancePropertiesModel:
         return self._properties
