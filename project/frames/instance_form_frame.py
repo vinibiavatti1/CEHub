@@ -23,25 +23,34 @@ from project.services.data_service import DataService
 
 
 class InstanceFormFrame(QFrame):
+    """
+    Instance form add/edit frame
+    """
 
     DEFAULT_HOST_PORT = 24711
 
-    def __init__(self, parent, instance_edit: InstanceModel = None) -> None:
-        super().__init__(parent, objectName='form')
-        self.create_layout()
-        self.build_instance_form()
-        self.build_server_form()
-        self.build_client_form()
-        self.register_handlers()
-        self.handle_instance_type_field_change(InstanceTypeEnum.SP.value)
-        self.instance_edit = instance_edit
-        if self.instance_edit is not None:
-            self.fill_form()
+    def __init__(self, main_window, instance: InstanceModel = None) -> None:
+        """
+        Construct a new InstanceFormFrame
+        """
+        super().__init__(main_window, objectName='form')
+        self.main_window = main_window
+        self.instance = instance
+        self._build()
+        self._register_handlers()
+        self._handle_instance_type_field_change(
+            InstanceTypeEnum.SP.value
+        )
+        if self.instance is not None:
+            self._fill_form()
 
-    def create_layout(self):
-        layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(layout)
+    def _build(self):
+        """
+        Build frame
+        """
+        container = QVBoxLayout()
+        container.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(container)
 
         # Tabs
         self.tabs = QTabWidget()
@@ -62,10 +71,17 @@ class InstanceFormFrame(QFrame):
         self.instance_tab.setLayout(self.instance_tab_layout)
         self.client_tab.setLayout(self.client_tab_layout)
         self.server_tab.setLayout(self.server_tab_layout)
+        container.addWidget(self.tabs)
 
-        layout.addWidget(self.tabs)
+        # Build forms
+        self._build_instance_form()
+        self._build_server_form()
+        self._build_client_form()
 
-    def build_instance_form(self) -> None:
+    def _build_instance_form(self) -> None:
+        """
+        Build the instance form (tab 1)
+        """
 
         # Instance Name
         self.instance_tab_layout.addWidget(QLabel('Instance Name', self))
@@ -96,7 +112,40 @@ class InstanceFormFrame(QFrame):
             self.instance_patch_field.addItem(option.value, option)
         self.instance_tab_layout.addWidget(self.instance_patch_field)
 
-    def build_server_form(self) -> None:
+    def _build_client_form(self) -> None:
+        """
+        Build the client form (tab 2)
+        """
+
+        # Team
+        self.client_tab_layout.addWidget(QLabel('Team', self))
+        self.instance_team_field = QComboBox(self)
+        for item in GameTeamEnum:
+            self.instance_team_field.addItem(item.value, item)
+        self.client_tab_layout.addWidget(self.instance_team_field)
+
+        # Nickname
+        self.client_tab_layout.addWidget(QLabel('Nickname', self))
+        self.instance_nickname_field = QComboBox(self)
+        self.instance_nickname_field.addItem('Use CEHub Profile', None)
+        self.instance_nickname_field.addItem('Custom...', 'custom')
+        self.client_tab_layout.addWidget(self.instance_nickname_field)
+
+        # Custom Nickname
+        self.instance_custom_nickname_field = QLineEdit(self)
+        self.instance_custom_nickname_field.setPlaceholderText(
+            'Enter the custom nickname'
+        )
+        self.instance_custom_nickname_field.setDisabled(True)
+        self.client_tab_layout.addWidget(self.instance_custom_nickname_field)
+
+        # Focus
+        self.instance_name_field.setFocus()
+
+    def _build_server_form(self) -> None:
+        """
+        Build the server form (tab 3)
+        """
         # Host
         self.server_tab_layout.addWidget(QLabel('Host Port', self))
         self.instance_host_field = QComboBox(self)
@@ -154,50 +203,27 @@ class InstanceFormFrame(QFrame):
             self.instance_game_type_field.addItem(option.value, option)
         self.server_tab_layout.addWidget(self.instance_game_type_field)
 
-    def build_client_form(self) -> None:
+    def _fill_form(self) -> None:
+        """
+        Fill form with instance data
+        """
+        props = self.instance.properties
 
-        # Team
-        self.client_tab_layout.addWidget(QLabel('Team', self))
-        self.instance_team_field = QComboBox(self)
-        for item in GameTeamEnum:
-            self.instance_team_field.addItem(item.value, item)
-        self.client_tab_layout.addWidget(self.instance_team_field)
-
-        # Nickname
-        self.client_tab_layout.addWidget(QLabel('Nickname', self))
-        self.instance_nickname_field = QComboBox(self)
-        self.instance_nickname_field.addItem('Use CEHub Profile', None)
-        self.instance_nickname_field.addItem('Custom...', 'custom')
-        self.client_tab_layout.addWidget(self.instance_nickname_field)
-
-        # Custom Nickname
-        self.instance_custom_nickname_field = QLineEdit(self)
-        self.instance_custom_nickname_field.setPlaceholderText(
-            'Enter the custom nickname'
-        )
-        self.instance_custom_nickname_field.setDisabled(True)
-        self.client_tab_layout.addWidget(self.instance_custom_nickname_field)
-
-        # Focus
-        self.instance_name_field.setFocus()
-
-    def fill_form(self) -> None:
-        props = self.instance_edit.properties
         # Instance Tab
         self.instance_name_field.setText(
-            self.instance_edit.name
+            self.instance.name
         )
         self.instance_name_field.setDisabled(True)
         self.instance_type_field.setCurrentText(
-            self.instance_edit.type
+            self.instance.type
         )
         self.instance_type_field.setDisabled(True)
         self.instance_version_field.setCurrentText(
-            self.instance_edit.version
+            self.instance.version
         )
         self.instance_version_field.setDisabled(True)
         self.instance_patch_field.setCurrentText(
-            self.instance_edit.patch
+            self.instance.patch
         )
         self.instance_patch_field.setDisabled(True)
 
@@ -242,9 +268,12 @@ class InstanceFormFrame(QFrame):
     # Handlers
     ###########################################################################
 
-    def register_handlers(self) -> None:
+    def _register_handlers(self) -> None:
+        """
+        Register input handlers
+        """
         self.instance_type_field.currentTextChanged.connect(
-            self.handle_instance_type_field_change
+            self._handle_instance_type_field_change
         )
         self.instance_version_field.currentTextChanged.connect(
             self.handle_instance_version_field_change
@@ -260,6 +289,9 @@ class InstanceFormFrame(QFrame):
         )
 
     def handle_instance_host_field_change(self, value) -> None:
+        """
+        Handle instance host field change event
+        """
         self.instance_custom_host_field.setDisabled(True)
         self.instance_custom_host_field.setValue(
             InstanceFormFrame.DEFAULT_HOST_PORT
@@ -269,6 +301,9 @@ class InstanceFormFrame(QFrame):
             self.instance_custom_host_field.setFocus()
 
     def handle_instance_map_field_change(self, value) -> None:
+        """
+        Handle instance map field change event
+        """
         self.instance_custom_map_field.setDisabled(True)
         self.instance_custom_map_field.setText('')
         if value == 'Custom...':
@@ -276,6 +311,9 @@ class InstanceFormFrame(QFrame):
             self.instance_custom_map_field.setFocus()
 
     def handle_instance_nickname_field_change(self, value) -> None:
+        """
+        Handle instance nickname field change event
+        """
         self.instance_custom_nickname_field.setDisabled(True)
         self.instance_custom_nickname_field.setText('')
         if value == 'Custom...':
@@ -283,6 +321,9 @@ class InstanceFormFrame(QFrame):
             self.instance_custom_nickname_field.setFocus()
 
     def handle_instance_version_field_change(self, value) -> None:
+        """
+        Handle instance version field change event
+        """
         self.instance_patch_field.setDisabled(False)
         if value == InstanceVersionEnum.MP_DEMO_DAFOOSA.value:
             self.instance_patch_field.setCurrentIndex(3)
@@ -294,7 +335,10 @@ class InstanceFormFrame(QFrame):
             self.instance_patch_field.setCurrentIndex(0)
             self.instance_patch_field.setDisabled(True)
 
-    def handle_instance_type_field_change(self, value) -> None:
+    def _handle_instance_type_field_change(self, value) -> None:
+        """
+        Handle instance type field change event
+        """
         self.server_tab.setDisabled(False)
         self.client_tab.setDisabled(False)
         self.instance_version_field.setDisabled(False)
@@ -321,7 +365,28 @@ class InstanceFormFrame(QFrame):
     # Validations
     ###########################################################################
 
-    def validate_instance_form(self) -> None:
+    def validate_forms(self, edit: bool = False) -> bool:
+        try:
+            if not edit:
+                self._validate_instance_form()
+            instance_type = self.instance_type_field.currentText()
+            if instance_type == InstanceTypeEnum.CLIENT.value:
+                self._validate_client_form()
+            elif instance_type == InstanceTypeEnum.SERVER.value:
+                self._validate_client_form()
+                self._validate_server_form()
+            elif instance_type == InstanceTypeEnum.DEDICATED.value:
+                self._validate_server_form()
+            return True
+        except ValueError as err:
+            message = QMessageBox()
+            message.warning(self, '', str(err))
+            return False
+
+    def _validate_instance_form(self) -> None:
+        """
+        Validate instance form
+        """
         instance_name = self.instance_name_field.text()
         if len(instance_name.strip()) == 0:
             self.instance_name_field.setFocus()
@@ -336,7 +401,7 @@ class InstanceFormFrame(QFrame):
                     other instance.'
                 )
 
-    def validate_client_form(self) -> None:
+    def _validate_client_form(self) -> None:
         if self.instance_nickname_field.currentIndex() == 'Custom...':
             custom_nickname = self.instance_custom_nickname_field.text()
             if not custom_nickname:
@@ -350,7 +415,7 @@ class InstanceFormFrame(QFrame):
                     'The custom nickname has a limit of 10 characters'
                 )
 
-    def validate_server_form(self) -> None:
+    def _validate_server_form(self) -> None:
         hostname = self.instance_host_name_field.text()
         if not hostname:
             self.tabs.setCurrentIndex(2)
@@ -362,25 +427,14 @@ class InstanceFormFrame(QFrame):
                 self.instance_custom_map_field.setFocus()
                 raise ValueError('The custom map must be set')
 
-    def validate_forms(self, edit: bool = False) -> bool:
-        try:
-            if not edit:
-                self.validate_instance_form()
-            instance_type = self.instance_type_field.currentText()
-            if instance_type == InstanceTypeEnum.CLIENT.value:
-                self.validate_client_form()
-            elif instance_type == InstanceTypeEnum.SERVER.value:
-                self.validate_client_form()
-                self.validate_server_form()
-            elif instance_type == InstanceTypeEnum.DEDICATED.value:
-                self.validate_server_form()
-            return True
-        except ValueError as err:
-            message = QMessageBox()
-            message.warning(self, '', str(err))
-            return False
+    ###########################################################################
+    # Actions
+    ###########################################################################
 
     def setup(self) -> None:
+        """
+        Call the SetupService to install the instance
+        """
         if self.validate_forms():
             confirm = QMessageBox()
             answer = confirm.question(
@@ -389,7 +443,7 @@ class InstanceFormFrame(QFrame):
                 'The instance will be installed. Proceed?'
             )
             if answer == QMessageBox.Yes:
-                instance = self.create_model()
+                instance = self.create_instance_model()
                 try:
                     SetupService.install_instance(instance)
                     feedback = QMessageBox()
@@ -407,6 +461,9 @@ class InstanceFormFrame(QFrame):
                     message.critical(self, 'Error', str(err))
 
     def save(self):
+        """
+        Save the instance data
+        """
         if self.validate_forms(True):
             confirm = QMessageBox()
             answer = confirm.question(
@@ -415,7 +472,7 @@ class InstanceFormFrame(QFrame):
                 'Save changes?'
             )
             if answer == QMessageBox.Yes:
-                instance = self.create_model()
+                instance = self.create_instance_model()
                 data = DataService.get_data()
                 for instance_ in data.instances:
                     if instance_.name == instance.name:
@@ -423,9 +480,16 @@ class InstanceFormFrame(QFrame):
                         data.instances.append(instance)
                         break
                 DataService.save_data(data)
-                self.parent().regirect_to_instance_list()
+                self.main_window.regirect_to_instance_list()
 
-    def create_model(self) -> InstanceModel:
+    ###########################################################################
+    # Form models
+    ###########################################################################
+
+    def create_instance_model(self) -> InstanceModel:
+        """
+        Create the instance model by the forms
+        """
         instance_properties = InstancePropertiesModel()
 
         # Common data
@@ -467,5 +531,4 @@ class InstanceFormFrame(QFrame):
             self.instance_patch_field.currentText(),
             instance_properties
         )
-
         return instance

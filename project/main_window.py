@@ -25,7 +25,6 @@ from PyQt5.QtWidgets import (
     QToolBar,
     QWidget,
 )
-import psutil
 import os
 
 
@@ -33,13 +32,6 @@ class MainWindow(QMainWindow):
     """
     Application main window
     """
-
-    STATE_NORMAL = 0
-    STATE_ADD = 1
-    STATE_EDIT = 2
-    STATE_INSTANCE_SELECTED = 3
-    STATE_RUN = 4
-    STATE_ABOUT = 5
 
     def __init__(self, parent=None) -> None:
         """
@@ -54,11 +46,11 @@ class MainWindow(QMainWindow):
         self.build_toolbar()
         self.build_menu()
         self.build_statusbar()
-        self.register_stylesheets()
         self.register_handlers()
         self.update_window_title()
         self.set_actions_state(MainWindowStatesEnum.NORMAL)
         self.set_central_widget(InstanceListFrame(self))
+        self.register_stylesheets()
 
     ###########################################################################
     # GUI Build
@@ -307,7 +299,6 @@ class MainWindow(QMainWindow):
         """
         self.add_action.setDisabled(False)
         self.refresh_action.setDisabled(False)
-        self.register_stylesheets()
 
     def enable_actions_to_adding_state(self) -> None:
         """
@@ -361,6 +352,7 @@ class MainWindow(QMainWindow):
         self.central_widget = InstanceListFrame(self)
         self.setCentralWidget(self.central_widget)
         self.set_actions_state(MainWindowStatesEnum.NORMAL)
+        self.register_stylesheets()
 
     ###########################################################################
     # Handlers
@@ -463,15 +455,15 @@ class MainWindow(QMainWindow):
 
     def handle_cancel_action(self) -> None:
         """
-        Handle click event to cancel action TODO
+        Handle click event to cancel action
         """
-        if self.current_state == MainWindow.STATE_INSTANCE_SELECTED:
+        if self.current_state == MainWindowStatesEnum.INSTANCE_SELECTED:
             if isinstance(self.central_widget, InstanceListFrame):
                 self.central_widget.deselect_instances()
-            self.set_actions_state(MainWindow.STATE_NORMAL)
-        elif self.current_state == MainWindow.STATE_RUN:
+            self.set_actions_state(MainWindowStatesEnum.NORMAL)
+        elif self.current_state == MainWindowStatesEnum.RUN:
             self.regirect_to_instance_list()
-        elif self.current_state == MainWindow.STATE_ABOUT:
+        elif self.current_state == MainWindowStatesEnum.ABOUT:
             self.regirect_to_instance_list()
         else:
             answer = DialogService.question(
@@ -529,6 +521,9 @@ class MainWindow(QMainWindow):
             DataService.save_data(data)
             self.refresh_statusbar()
             self.update_window_title()
+            if isinstance(self.central_widget, InstanceRunFrame):
+                self.central_widget.refresh_run_arguments()
+                self.central_widget.refresh_connect_arguments()
 
     ###########################################################################
     # Refreshes

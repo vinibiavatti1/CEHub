@@ -20,23 +20,32 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QWidget
 )
-import os
 
 
 class InstanceRunFrame(QFrame):
+    """
+    Instance running form frame
+    """
+
     def __init__(self, main_window, instance: InstanceModel,
-                 connect_tab: bool) -> None:
+                 open_in_connect_tab: bool) -> None:
+        """
+        Construct a new InstanceRunFrame
+        """
         super().__init__(main_window, objectName='frame')
         self.main_window = main_window
         self.instance = instance
-        self.create_layout(connect_tab)
+        self._build(open_in_connect_tab)
+        self._register_handlers()
         self.refresh_addresses()
-        self.register_handlers()
         self.refresh_run_arguments()
         if instance.type == InstanceTypeEnum.CLIENT.value:
             self.refresh_connect_arguments()
 
-    def create_layout(self, connect_tab: bool) -> None:
+    def _build(self, open_in_connect_tab: bool) -> None:
+        """
+        Build frame
+        """
         self.grid = QVBoxLayout()
         self.grid.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.setLayout(self.grid)
@@ -66,33 +75,31 @@ class InstanceRunFrame(QFrame):
         self.grid.addWidget(self.tabs)
         if self.instance.type != InstanceTypeEnum.CLIENT.value:
             self.tab_connect.setDisabled(True)
-
-        # Select tab
-        if connect_tab:
+        if open_in_connect_tab:
             self.tabs.setCurrentIndex(1)
 
-        # Tab Run
+        # Run Tab
         self.grid_tab_run = QVBoxLayout()
         self.grid_tab_run.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.tab_run.setLayout(self.grid_tab_run)
 
-        # Arguments Run
+        # Run arguments
         self.grid_tab_run.addWidget(QLabel('Command Line', self))
         self.command_line_field = QLineEdit(self)
         self.grid_tab_run.addWidget(self.command_line_field)
 
-        # Actions
+        # Run button
         self.run_button = QPushButton('Run!', self)
         self.run_button.setIcon(QIcon(':run-icon'))
         self.run_button.setFixedWidth(150)
         self.grid_tab_run.addWidget(self.run_button)
 
-        # Tab Connect
+        # Connect Tab
         self.grid_tab_connect = QVBoxLayout()
         self.grid_tab_connect.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.tab_connect.setLayout(self.grid_tab_connect)
 
-        # Connect
+        # Connect addresses
         self.grid_tab_connect.addWidget(QLabel('Address (IP or Host)'))
         self.addresses_field = QComboBox()
         self.grid_tab_connect.addWidget(self.addresses_field)
@@ -102,6 +109,7 @@ class InstanceRunFrame(QFrame):
         )
         self.grid_tab_connect.addWidget(self.address_field)
 
+        # Address buttons container
         self.btn_frame = QFrame()
         self.btn_frame_grid = QHBoxLayout()
         self.btn_frame_grid.setContentsMargins(0, 0, 0, 0)
@@ -109,43 +117,56 @@ class InstanceRunFrame(QFrame):
         self.btn_frame.setLayout(self.btn_frame_grid)
         self.grid_tab_connect.addWidget(self.btn_frame)
 
+        # Address save
         self.save_address_button = QPushButton('Save Connection')
         self.save_address_button.setIcon(QIcon(':address-add-icon'))
         self.save_address_button.setFixedWidth(150)
         self.btn_frame_grid.addWidget(self.save_address_button)
 
+        # Address delete
         self.delete_address_button = QPushButton('Delete Connection')
         self.delete_address_button.setIcon(QIcon(':address-delete-icon'))
         self.delete_address_button.setFixedWidth(150)
         self.btn_frame_grid.addWidget(self.delete_address_button)
 
-        # Arguments Connect
+        # Connect arguments
         self.grid_tab_connect.addWidget(QLabel('Command Line', self))
         self.command_line_connect_field = QLineEdit(self)
         self.command_line_connect_field.setText('ce.exe +host')
         self.grid_tab_connect.addWidget(self.command_line_connect_field)
 
+        # Connect button
         self.connect_button = QPushButton('Connect!')
         self.connect_button.setIcon(QIcon(':connect-icon'))
         self.connect_button.setFixedWidth(150)
         self.grid_tab_connect.addWidget(self.connect_button)
 
+    ###########################################################################
+    # Refreshes
+    ###########################################################################
+
     def refresh_addresses(self) -> None:
+        """
+        Refresh the address list combobox
+        """
         self.addresses_field.clear()
         self.addresses_field.addItem('--- Select the address or type one ---')
         for connection in DataService.get_data().connections:
             self.addresses_field.addItem(
                 f'{connection.name} ({connection.address})'
             )
-        if self.instance.properties.last_connection_index is not None:
-            index = self.instance.properties.last_connection_index
-            if index < self.addresses_field.count():
-                self.addresses_field.setCurrentIndex(
-                    self.instance.properties.last_connection_index
-                )
-                self.handle_addresses_change()
+        if self.instance.properties.last_connection_name is not None:
+            name = self.instance.properties.last_connection_name
+            for i in range(self.addresses_field.count()):
+                if self.addresses_field.itemText(i) == name:
+                    self.addresses_field.currentIndex(i)
+                    self.handle_addresses_change()
+                    break
 
     def refresh_run_arguments(self) -> None:
+        """
+        Refresh run arguments field
+        """
         instance_type = self.instance.type
         if instance_type == InstanceTypeEnum.CLIENT.value or \
                 instance_type == InstanceTypeEnum.SP.value:
@@ -160,6 +181,9 @@ class InstanceRunFrame(QFrame):
         self.command_line_field.setText(arguments)
 
     def refresh_connect_arguments(self) -> None:
+        """
+        Refresh connect arguments field
+        """
         profile = DataService.get_data().profile.nickname
         arguments = CommandLineService.generate_arguments(
             self.instance, profile, self.address_field.text()
@@ -170,12 +194,15 @@ class InstanceRunFrame(QFrame):
     # Handlers
     ###########################################################################
 
-    def register_handlers(self) -> None:
+    def _register_handlers(self) -> None:
+        """
+        Register button click event handlers
+        """
         self.save_address_button.clicked.connect(
-            self.handle_save_address
+            self._handle_save_connection
         )
         self.delete_address_button.clicked.connect(
-            self.handle_delete_address
+            self._handle_delete_connection
         )
         self.addresses_field.currentTextChanged.connect(
             self.handle_addresses_change
@@ -191,6 +218,9 @@ class InstanceRunFrame(QFrame):
         )
 
     def handle_run(self) -> None:
+        """
+        Handle run button click event
+        """
         try:
             ProcessService.execute(
                 PathUtils.get_instance_path(self.instance.name),
@@ -202,11 +232,14 @@ class InstanceRunFrame(QFrame):
         self.main_window.refresh_statusbar_message()
 
     def handle_connect(self) -> None:
+        """
+        Handle connect button click event
+        """
         data = DataService.get_data()
         for instance in data.instances:
             if instance.name == self.instance.name:
-                instance.properties.last_connection_index = \
-                    self.addresses_field.currentIndex()
+                instance.properties.last_connection_name = \
+                    self.addresses_field.currentText()
                 break
         DataService.save_data(data)
         try:
@@ -220,9 +253,15 @@ class InstanceRunFrame(QFrame):
         self.main_window.refresh_statusbar_message()
 
     def handle_address_change(self) -> None:
+        """
+        Handle address change event
+        """
         self.refresh_connect_arguments()
 
     def handle_addresses_change(self) -> None:
+        """
+        Handle addresses change event
+        """
         if self.addresses_field.currentIndex() == 0:
             self.address_field.setText('')
             return
@@ -232,7 +271,10 @@ class InstanceRunFrame(QFrame):
         ]
         self.address_field.setText(connection.address)
 
-    def handle_delete_address(self) -> None:
+    def _handle_delete_connection(self) -> None:
+        """
+        Handle delete connection button click event
+        """
         if (self.addresses_field.count() == 0 or
                 self.addresses_field.currentIndex() == 0):
             message = QMessageBox()
@@ -253,7 +295,10 @@ class InstanceRunFrame(QFrame):
             DataService.save_data(data)
             self.refresh_addresses()
 
-    def handle_save_address(self) -> None:
+    def _handle_save_connection(self) -> None:
+        """
+        Handle save connection button click event
+        """
         address = self.address_field.text()
         if not address:
             message = QMessageBox()

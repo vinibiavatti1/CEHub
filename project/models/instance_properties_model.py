@@ -1,5 +1,12 @@
 class InstancePropertiesModel:
+    """
+    Instance properties model
+    """
+
     def __init__(self) -> None:
+        """
+        Construct a new instance properties model
+        """
         # Client
         self._team: str = None
         self._nickname: str = None
@@ -15,7 +22,7 @@ class InstancePropertiesModel:
         self._custom_map: bool = False
 
         # Connection
-        self._last_connection_index: int = None
+        self._last_connection_name: str = None
 
     ###########################################################################
     # Properties
@@ -62,8 +69,8 @@ class InstancePropertiesModel:
         return self._custom_map
 
     @property
-    def last_connection_index(self) -> int:
-        return self._last_connection_index
+    def last_connection_name(self) -> str:
+        return self._last_connection_name
 
     @team.setter
     def team(self, _team: str) -> None:
@@ -105,6 +112,6 @@ class InstancePropertiesModel:
     def custom_map(self, _custom: bool) -> None:
         self._custom_map = _custom
 
-    @last_connection_index.setter
-    def last_connection_index(self, _index: int) -> None:
-        self._last_connection_index = _index
+    @last_connection_name.setter
+    def last_connection_name(self, _name: str) -> None:
+        self._last_connection_name = _name

@@ -4,7 +4,14 @@ from project.models.profile_model import ProfileModel
 
 
 class DataModel:
+    """
+    Application Data model
+    """
+
     def __init__(self) -> None:
+        """
+        Construct a new data model
+        """
         self._profile: ProfileModel = ProfileModel()
         self._instances: list[InstanceModel] = []
         self._connections: list[ConnectionModel] = []
@@ -31,9 +38,15 @@ class DataModel:
     ###########################################################################
 
     def add_instance(self, instance: InstanceModel) -> None:
+        """
+        Add a new instance to instance list
+        """
         self._instances.append(instance)
 
     def get_instance(self, instance_name: str) -> InstanceModel:
+        """
+        Get the instance buy the name
+        """
         instances = list(
             filter(lambda e: e.name == instance_name, self._instances)
         )
@@ -43,14 +56,23 @@ class DataModel:
             return None
 
     def delete_instance(self, instance_name: str) -> InstanceModel:
+        """
+        Delete instance by the name
+        """
         for i in range(len(self._instances)):
             if self._instances[i].name == instance_name:
                 return self._instances.pop(i)
 
     def add_connection(self, connection: ConnectionModel) -> None:
+        """
+        Add a new connection to the list
+        """
         self._connections.append(connection)
 
     def get_connection(self, connection_name: str) -> ConnectionModel:
+        """
+        Get connection by the name
+        """
         connections = list(
             filter(lambda e: e.name == connection_name, self._connections)
         )
@@ -60,6 +82,9 @@ class DataModel:
             return None
 
     def delete_connection(self, connection_name: str) -> ConnectionModel:
+        """
+        Delete connection by the name
+        """
         for i in range(len(self._connections)):
             if self._connections[i].name == connection_name:
                 return self._connections.pop(i)
@@ -69,6 +94,9 @@ class DataModel:
     ###########################################################################
 
     def _register_default_connections(self) -> None:
+        """
+        Register default connections to connection list
+        """
         self._connections.append(
             ConnectionModel(
                 'codenameeaglemultiplayer.com',
