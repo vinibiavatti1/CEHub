@@ -47,9 +47,13 @@ class InstanceListFrame(QFrame):
         data = DataService.get_data()
         self.buttons = []
         for instance in data.instances:
-            btn = InstanceButton(self.main_window, instance)
+            btn = InstanceButton(self.main_window, self, instance)
             self.grid.addWidget(btn)
             self.buttons.append(btn)
+
+    def deselect_instances(self) -> None:
+        for btn in self.buttons:
+            btn.set_deselected_style()
 
     def refresh(self) -> None:
         for i in reversed(range(self.grid.count())):

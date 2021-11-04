@@ -1,19 +1,13 @@
-from PyQt5.QtCore import QLine, Qt
-from PyQt5.QtGui import QFont, QIcon
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QComboBox,
-    QErrorMessage,
     QFrame,
-    QGroupBox,
     QLineEdit,
     QMessageBox,
-    QPushButton,
-    QScrollArea,
     QSpinBox,
     QTabWidget,
     QVBoxLayout,
     QLabel,
-    QTextEdit,
     QWidget
 )
 from project.enums.game_map_enum import GameMapEnum
@@ -22,7 +16,6 @@ from project.enums.game_type_enum import GameTypeEnum
 from project.models.instance_model import InstanceModel
 from project.models.instance_properties_model import InstancePropertiesModel
 from project.services.setup_service import SetupService
-from project.widgets.instance_button import InstanceButton
 from project.enums.instance_version_enum import InstanceVersionEnum
 from project.enums.instance_type_enum import InstanceTypeEnum
 from project.enums.instance_patch_enum import InstancePatchEnum
@@ -408,7 +401,7 @@ class InstanceFormFrame(QFrame):
                     data = DataService.get_data()
                     data.instances.append(instance)
                     DataService.save_data(data)
-                    self.parent().go_instance_list()
+                    self.parent().regirect_to_instance_list()
                 except Exception as err:
                     message = QMessageBox()
                     message.critical(self, 'Error', str(err))
@@ -430,7 +423,7 @@ class InstanceFormFrame(QFrame):
                         data.instances.append(instance)
                         break
                 DataService.save_data(data)
-                self.parent().go_instance_list()
+                self.parent().regirect_to_instance_list()
 
     def create_model(self) -> InstanceModel:
         instance_properties = InstancePropertiesModel()
