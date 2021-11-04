@@ -4,19 +4,18 @@ from project.models.instance_model import InstanceModel
 from project.services.data_service import DataService
 from project.services.process_service import ProcessService
 from project.services.setup_service import SetupService
-from project.widgets.about_frame import AboutFrame
+from project.frames.about_frame import AboutFrame
 from project.utils.path_utils import PathUtils
 from project import qrc_resources
 from project.stylesheet import stylesheet
-from project.widgets.instance_list_frame import InstanceListFrame
-from project.widgets.instance_form_frame import InstanceFormFrame
-from project.widgets.instance_run_frame import InstanceRunFrame
+from project.frames.instance_list_frame import InstanceListFrame
+from project.frames.instance_form_frame import InstanceFormFrame
+from project.frames.instance_run_frame import InstanceRunFrame
 from project.app_info import AppInfo
 from project.enums.main_window_states_enum import MainWindowStatesEnum
 from project.services.dialog_service import DialogService
 from PyQt5.QtWidgets import (
     QAction,
-    QInputDialog,
     QLabel,
     QMainWindow,
     QMenu,
@@ -500,8 +499,7 @@ class MainWindow(QMainWindow):
                 self.set_actions_state(MainWindowStatesEnum.NORMAL)
             except Exception as err:
                 print(err)
-                message = QMessageBox()
-                message.critical(self, 'Error', str(err))
+                DialogService.error(self, str(err))
 
     def handle_change_nickname(self) -> None:
         """
