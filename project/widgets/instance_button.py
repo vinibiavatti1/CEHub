@@ -99,6 +99,7 @@ class InstanceButton(QPushButton):
         """
         Process click action when the instance is ok
         """
+        self.list_frame.deselect_instances()
         self.main_window.set_current_instance(self.instance)
         self.main_window.set_actions_state(
             MainWindowStatesEnum.INSTANCE_SELECTED
