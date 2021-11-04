@@ -15,7 +15,8 @@ if os.path.exists(BUILD_DIR):
 
 # Create EXE
 os.system(
-    f'pyinstaller --noconsole --paths {DEPENDENCIES_PATH} --name cehub --onefile main.py'
+    f'pyinstaller --noconsole --paths {DEPENDENCIES_PATH} --name cehub ' +
+    f'--onefile main.py'
 )
 
 # Create dirs

@@ -2,6 +2,9 @@ from enum import Enum
 
 
 class InstanceVersionEnum(Enum):
+    """
+    Instance version enum
+    """
     FULL = 'Full Version'
     MP_DEMO_OFFICIAL = 'Multiplayer Demo Official'
     MP_DEMO_DAFOOSA = 'Multiplayer Demo Unofficial (Dafoosa\'s Version)'

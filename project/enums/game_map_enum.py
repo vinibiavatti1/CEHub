@@ -2,6 +2,9 @@ from enum import Enum
 
 
 class GameMapEnum(Enum):
+    """
+    CE multiplayer maps enum
+    """
     NO_MANS_LAND = 'no mans land'
     BREAKPOINT = 'breakpoint'
     FEVER_VALLEY = 'fever valley'

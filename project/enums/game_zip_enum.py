@@ -2,6 +2,9 @@ from enum import Enum
 
 
 class GameZipEnum(Enum):
+    """
+    Game medias enum
+    """
     ZIP_DAFOOSA = 'codename-eagle-multiplayer-demo-dafoosa.zip'
     ZIP_MYG = 'codename-eagle-multiplayer-demo-myg.zip'
     ZIP_MP_DEMO_OFFICIAL = 'codename-eagle-multiplayer-demo-official.zip'
