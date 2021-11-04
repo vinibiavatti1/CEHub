@@ -1,7 +1,5 @@
 from project.enums.instance_type_enum import InstanceTypeEnum
 from project.models.instance_model import InstanceModel
-from project.utils.path_utils import PathUtils
-import os
 
 
 class CommandLineService:

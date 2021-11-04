@@ -15,9 +15,9 @@ class ProcessService:
         Kill the ce.exe and lobby.exe processes
         """
         for p in psutil.process_iter():
-            if p.name().lower() == 'ce.exe':
+            if p.name().lower() == ProcessService.CE_PROCESS_NAME:
                 p.kill()
-            if p.name().lower() == 'lobby.exe':
+            if p.name().lower() == ProcessService.LOBBY_PROCESS_NAME:
                 p.kill()
         print('Process ce.exe and lobby.exe killed!')
 

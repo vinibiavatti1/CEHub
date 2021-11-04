@@ -159,7 +159,7 @@ class InstanceRunFrame(QFrame):
             name = self.instance.properties.last_connection_name
             for i in range(self.addresses_field.count()):
                 if self.addresses_field.itemText(i) == name:
-                    self.addresses_field.currentIndex(i)
+                    self.addresses_field.setCurrentIndex(i)
                     self.handle_addresses_change()
                     break
 
@@ -229,7 +229,7 @@ class InstanceRunFrame(QFrame):
         except Exception as err:
             message = QMessageBox()
             message.critical(self, 'Error', str(err))
-        self.main_window.refresh_statusbar_message()
+        self.main_window.refresh_statusbar()
 
     def handle_connect(self) -> None:
         """
@@ -250,7 +250,7 @@ class InstanceRunFrame(QFrame):
         except Exception as err:
             message = QMessageBox()
             message.critical(self, 'Error', str(err))
-        self.main_window.refresh_statusbar_message()
+        self.main_window.refresh_statusbar()
 
     def handle_address_change(self) -> None:
         """

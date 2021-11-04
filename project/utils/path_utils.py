@@ -23,6 +23,13 @@ class PathUtils:
         return os.path.join(cls.get_current_dir(), 'game', game_zip.value)
 
     @classmethod
+    def get_data_path(cls) -> str:
+        """
+        Get data directory path
+        """
+        return os.path.join(cls.get_current_dir(), 'data')
+
+    @classmethod
     def get_data_file_path(cls) -> str:
         """
         Get data file path
