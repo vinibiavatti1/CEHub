@@ -1,3 +1,2 @@
 # CEHub
-
-Codename Eagle Hub Application
+Codename Eagle Instance Manager Application
