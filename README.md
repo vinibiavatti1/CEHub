@@ -11,6 +11,6 @@
 </p>
 
 ### About
-This tool provides an way to create and manage instances of the Codeaname Eagle game. It is possible to create different kind of instances, like Single Player instances, Multiplayer instances, Dedicated servers instances, etc. With this tool, is faster and more easy to manage and configure any instance of Codename Eagle. You can also connect to servers, register addresses and control your profile name. 
+This tool provides a way to create and manage instances of Codeaname Eagle game. It is possible to create different kind of instances, like Single Player, Multiplayer, Dedicated servers, etc. faster and more easy. The tool also allows to connect to CE servers, register addresses, create different servers with specific configurations, and control your profile name for each instance. 
 
 ### Images
