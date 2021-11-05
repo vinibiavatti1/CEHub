@@ -1,5 +1,7 @@
+from project.app_info import AppInfo
 from project.models.data_model import DataModel
-from project.utils.path_utils import PathUtils
+from project.services.migration_service import MigrationService
+from project.services.path_service import PathService
 import pickle
 import sys
 import os
@@ -18,8 +20,12 @@ class DataService:
         Load the data from the .dat file
         """
         try:
-            with open(PathUtils.get_data_file_path(), 'rb') as f:
-                cls.data = pickle.load(f)
+            with open(PathService.get_data_file_path(), 'rb') as f:
+                cls.data: DataModel = pickle.load(f)
+            if (not hasattr(cls.data, '_version') or
+                    cls.data.version != AppInfo.DATA_VERSION):
+                cls.data = MigrationService.migrate_data(cls.data)
+                DataService.save_data(cls.data)
         except Exception as err:
             print(err)
             if retry:
@@ -35,10 +41,10 @@ class DataService:
         """
         Re-create data file
         """
-        if not os.path.exists(PathUtils.get_data_path()):
-            os.mkdir(PathUtils.get_data_path())
+        if not os.path.exists(PathService.get_data_path()):
+            os.mkdir(PathService.get_data_path())
         initial_data = DataModel()
-        with open(PathUtils.get_data_file_path(), 'wb') as f:
+        with open(PathService.get_data_file_path(), 'wb') as f:
             pickle.dump(initial_data, f)
 
     @classmethod
@@ -54,5 +60,5 @@ class DataService:
         Update in-memory data and persist it to .dat file
         """
         cls.data = data
-        with open(PathUtils.get_data_file_path(), 'wb') as f:
+        with open(PathService.get_data_file_path(), 'wb') as f:
             pickle.dump(data, f)

@@ -4,7 +4,7 @@ from project.enums.instance_type_enum import InstanceTypeEnum
 from project.models.connection_model import ConnectionModel
 from project.models.instance_model import InstanceModel
 from project.services.data_service import DataService
-from project.utils.path_utils import PathUtils
+from project.services.path_service import PathService
 from project.services.command_line_service import CommandLineService
 from project.services.process_service import ProcessService
 from PyQt5.QtWidgets import (
@@ -62,7 +62,7 @@ class InstanceRunFrame(QFrame):
         self.instance_path_field = QLineEdit()
         self.instance_path_field.setReadOnly(True)
         self.instance_path_field.setText(
-            PathUtils.get_instance_path(self.instance.name)
+            PathService.get_instance_path(self.instance.name)
         )
         self.grid.addWidget(self.instance_path_field)
 
@@ -223,7 +223,7 @@ class InstanceRunFrame(QFrame):
         """
         try:
             ProcessService.execute(
-                PathUtils.get_instance_path(self.instance.name),
+                PathService.get_instance_path(self.instance.name),
                 self.command_line_field.text()
             )
         except Exception as err:
@@ -244,7 +244,7 @@ class InstanceRunFrame(QFrame):
         DataService.save_data(data)
         try:
             ProcessService.execute(
-                PathUtils.get_instance_path(self.instance.name),
+                PathService.get_instance_path(self.instance.name),
                 self.command_line_connect_field.text()
             )
         except Exception as err:

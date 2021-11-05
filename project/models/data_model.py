@@ -12,9 +12,11 @@ class DataModel:
         """
         Construct a new data model
         """
+        self._version: int = 2
         self._profile: ProfileModel = ProfileModel()
         self._instances: list[InstanceModel] = []
         self._connections: list[ConnectionModel] = []
+        self._cd_drive: str = 'E:'
         self._register_default_connections()
 
     ###########################################################################
@@ -32,6 +34,22 @@ class DataModel:
     @property
     def connections(self) -> list[ConnectionModel]:
         return self._connections
+
+    @property
+    def cd_drive(self) -> str:
+        return self._cd_drive
+
+    @property
+    def version(self) -> int:
+        return self._version
+
+    @version.setter
+    def version(self, new_version: int) -> None:
+        self._version = new_version
+
+    @cd_drive.setter
+    def cd_drive(self, drive: str) -> None:
+        self._cd_drive = drive
 
     ###########################################################################
     # Public methods

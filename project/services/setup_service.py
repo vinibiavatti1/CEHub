@@ -3,7 +3,7 @@ from project.enums.instance_patch_enum import InstancePatchEnum
 from project.enums.instance_version_enum import InstanceVersionEnum
 from project.models.instance_model import InstanceModel
 from project.services.data_service import DataService
-from project.utils.path_utils import PathUtils
+from project.services.path_service import PathService
 import zipfile
 import os
 import shutil
@@ -37,7 +37,7 @@ class SetupService:
         """
         Delete an instance by its name from /instance folder and form data
         """
-        instance_path = PathUtils.get_instance_path(instance.name)
+        instance_path = PathService.get_instance_path(instance.name)
         if os.path.exists(instance_path):
             shutil.rmtree(instance_path)
         data = DataService.get_data()
@@ -57,7 +57,7 @@ class SetupService:
         """
         Create instance directory
         """
-        instance_path = PathUtils.get_instance_path(instance_name)
+        instance_path = PathService.get_instance_path(instance_name)
         os.mkdir(instance_path)
 
     @classmethod
@@ -106,8 +106,8 @@ class SetupService:
         """
         Unzip the game_zip file to the instance directory
         """
-        zip_path = PathUtils.get_game_zip_path(game_zip)
-        instance_path = PathUtils.get_instance_path(instance_name)
+        zip_path = PathService.get_game_zip_path(game_zip)
+        instance_path = PathService.get_instance_path(instance_name)
         if folder:
             instance_path = os.path.join(instance_path, folder)
         print(f'Unzipping {zip_path} to {instance_path}')

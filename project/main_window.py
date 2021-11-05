@@ -5,8 +5,9 @@ from project.services.data_service import DataService
 from project.services.process_service import ProcessService
 from project.services.setup_service import SetupService
 from project.frames.about_frame import AboutFrame
-from project.utils.path_utils import PathUtils
+from project.services.path_service import PathService
 from project import qrc_resources
+from project.services.winreg_service import WinRegService
 from project.stylesheet import stylesheet
 from project.frames.instance_list_frame import InstanceListFrame
 from project.frames.instance_form_frame import InstanceFormFrame
@@ -14,13 +15,13 @@ from project.frames.instance_run_frame import InstanceRunFrame
 from project.app_info import AppInfo
 from project.enums.main_window_states_enum import MainWindowStatesEnum
 from project.services.dialog_service import DialogService
+from project.services.validation_service import ValidationService
 from PyQt5.QtWidgets import (
     QAction,
     QLabel,
     QMainWindow,
     QMenu,
     QMenuBar,
-    QMessageBox,
     QStatusBar,
     QToolBar,
     QWidget,
@@ -32,6 +33,8 @@ class MainWindow(QMainWindow):
     """
     Application main window
     """
+
+    DRIVES = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
     def __init__(self, parent=None) -> None:
         """
@@ -47,7 +50,7 @@ class MainWindow(QMainWindow):
         self.build_menu()
         self.build_statusbar()
         self.register_handlers()
-        self.update_window_title()
+        self.refresh_window_title()
         self.set_actions_state(MainWindowStatesEnum.NORMAL)
         self.set_central_widget(InstanceListFrame(self))
         self.register_stylesheets()
@@ -55,15 +58,6 @@ class MainWindow(QMainWindow):
     ###########################################################################
     # GUI Build
     ###########################################################################
-
-    def update_window_title(self) -> None:
-        """
-        Update window top bar title with application TITLE and VERSION
-        """
-        nickname = DataService.get_data().profile.nickname
-        self.setWindowTitle(
-            f'{AppInfo.TITLE} {AppInfo.VERSION} ({nickname})'
-        )
 
     def build_toolbar(self) -> None:
         """
@@ -86,8 +80,8 @@ class MainWindow(QMainWindow):
         toolbar.addAction(self.kill_processes_action)
         toolbar.addAction(self.refresh_action)
         toolbar.addSeparator()
-        toolbar.addAction(self.save_action)
         toolbar.addAction(self.setup_action)
+        toolbar.addAction(self.save_action)
         toolbar.addAction(self.cancel_action)
         toolbar = self.addToolBar(toolbar)
 
@@ -99,7 +93,7 @@ class MainWindow(QMainWindow):
         self.build_instance_menu()
         self.build_open_menu()
         self.build_actions_menu()
-        self.build_profile_menu()
+        self.build_config_menu()
         self.build_about_menu()
         self.setMenuBar(self.menu_bar)
 
@@ -138,13 +132,14 @@ class MainWindow(QMainWindow):
         actions_menu.addAction(self.refresh_action)
         self.menu_bar.addMenu(actions_menu)
 
-    def build_profile_menu(self) -> None:
+    def build_config_menu(self) -> None:
         """
-        Build the profile menu
+        Build the configuration menu
         """
-        profile_menu = QMenu('Profile', self)
-        profile_menu.addAction(self.change_nickname_action)
-        self.menu_bar.addMenu(profile_menu)
+        config_menu = QMenu('Configuration', self)
+        config_menu.addAction(self.set_nickname_action)
+        config_menu.addAction(self.set_drive_action)
+        self.menu_bar.addMenu(config_menu)
 
     def build_about_menu(self) -> None:
         """
@@ -200,12 +195,14 @@ class MainWindow(QMainWindow):
             QAction(QIcon(':cancel-icon'), 'Cancel', self)
         self.setup_action = \
             QAction(QIcon(':setup-icon'), 'Setup', self)
-        self.change_nickname_action = \
-            QAction(QIcon(':profile-icon'), 'Change Nickname', self)
         self.kill_processes_action = \
             QAction(QIcon(':stop-icon'), 'Kill CE and Lobby Process', self)
         self.about_action = \
             QAction(QIcon(':about-icon'), 'About CEHub', self)
+        self.set_nickname_action = \
+            QAction(QIcon(':profile-icon'), 'Set Profile Nickname', self)
+        self.set_drive_action = \
+            QAction(QIcon(':drive-icon'), 'Set CD-ROM Drive', self)
 
     def register_handlers(self) -> None:
         """
@@ -229,9 +226,6 @@ class MainWindow(QMainWindow):
         self.setup_action.triggered.connect(
             lambda: self.handle_setup_action()
         )
-        self.change_nickname_action.triggered.connect(
-            lambda: self.handle_change_nickname()
-        )
         self.kill_processes_action.triggered.connect(
             lambda: self.handle_kill_ce_processes_action()
         )
@@ -252,6 +246,12 @@ class MainWindow(QMainWindow):
         )
         self.connect_action.triggered.connect(
             lambda: self.handle_run_action(True)
+        )
+        self.set_nickname_action.triggered.connect(
+            lambda: self.handle_set_nickname_action()
+        )
+        self.set_drive_action.triggered.connect(
+            lambda: self.handle_set_drive_action()
         )
 
     ###########################################################################
@@ -292,6 +292,7 @@ class MainWindow(QMainWindow):
         self.save_action.setDisabled(True)
         self.cancel_action.setDisabled(True)
         self.setup_action.setDisabled(True)
+        self.kill_processes_action.setDisabled(True)
 
     def enable_actions_to_normal_state(self) -> None:
         """
@@ -299,6 +300,7 @@ class MainWindow(QMainWindow):
         """
         self.add_action.setDisabled(False)
         self.refresh_action.setDisabled(False)
+        self.kill_processes_action.setDisabled(False)
 
     def enable_actions_to_adding_state(self) -> None:
         """
@@ -328,12 +330,14 @@ class MainWindow(QMainWindow):
             self.connect_action.setDisabled(False)
         self.refresh_action.setDisabled(False)
         self.cancel_action.setDisabled(False)
+        self.kill_processes_action.setDisabled(False)
 
     def enable_actions_to_instance_running_state(self) -> None:
         """
         Enable the actions for RUN state
         """
         self.cancel_action.setDisabled(False)
+        self.kill_processes_action.setDisabled(False)
 
     def enable_actions_to_about_state(self) -> None:
         """
@@ -345,12 +349,11 @@ class MainWindow(QMainWindow):
     # Redirects
     ###########################################################################
 
-    def regirect_to_instance_list(self) -> None:
+    def redirect_to_instance_list(self) -> None:
         """
         Redirect to instance list page
         """
-        self.central_widget = InstanceListFrame(self)
-        self.setCentralWidget(self.central_widget)
+        self.set_central_widget(InstanceListFrame(self))
         self.set_actions_state(MainWindowStatesEnum.NORMAL)
         self.register_stylesheets()
 
@@ -362,20 +365,16 @@ class MainWindow(QMainWindow):
         """
         Handle click event to about action
         """
-        self.central_widget = AboutFrame(
-            self
-        )
-        self.setCentralWidget(self.central_widget)
+        self.set_central_widget(AboutFrame(self))
         self.set_actions_state(MainWindowStatesEnum.ABOUT)
 
     def handle_run_action(self, connect_tab: bool) -> None:
         """
         Handle click event to run action
         """
-        self.central_widget = InstanceRunFrame(
+        self.set_central_widget(InstanceRunFrame(
             self, self.current_instance, connect_tab
-        )
-        self.setCentralWidget(self.central_widget)
+        ))
         self.set_actions_state(MainWindowStatesEnum.RUN)
 
     def handle_open_folder_action(self) -> None:
@@ -384,7 +383,7 @@ class MainWindow(QMainWindow):
         """
         if self.current_instance is not None:
             instance_path = \
-                PathUtils.get_instance_path(self.current_instance.name)
+                PathService.get_instance_path(self.current_instance.name)
             if os.path.exists(instance_path):
                 os.startfile(instance_path)
             else:
@@ -399,7 +398,7 @@ class MainWindow(QMainWindow):
         """
         if self.current_instance is not None:
             instance_path = \
-                PathUtils.get_instance_path(self.current_instance.name)
+                PathService.get_instance_path(self.current_instance.name)
             os.startfile(os.path.join(instance_path, 'dgVoodooCpl.exe'))
 
     def handle_refresh_action(self) -> None:
@@ -429,16 +428,14 @@ class MainWindow(QMainWindow):
         """
         Handle click event to add instance action
         """
-        self.central_widget = InstanceFormFrame(self)
-        self.setCentralWidget(self.central_widget)
+        self.set_central_widget(InstanceFormFrame(self))
         self.set_actions_state(MainWindowStatesEnum.ADD)
 
     def handle_edit_action(self) -> None:
         """
         Handle click event to edit instance action
         """
-        self.central_widget = InstanceFormFrame(self, self.current_instance)
-        self.setCentralWidget(self.central_widget)
+        self.set_central_widget(InstanceFormFrame(self, self.current_instance))
         self.set_actions_state(MainWindowStatesEnum.EDIT)
 
     def handle_save_action(self) -> None:
@@ -446,12 +443,17 @@ class MainWindow(QMainWindow):
         Handle click event to save instance action
         """
         self.central_widget.save()
+        self.refresh_statusbar()
+        self.refresh_window_title()
+        DialogService.info(self, 'Saved successfully')
 
     def handle_setup_action(self) -> None:
         """
         Handle click event to setup instance action
         """
         self.central_widget.setup()
+        self.refresh_statusbar()
+        self.refresh_window_title()
 
     def handle_cancel_action(self) -> None:
         """
@@ -462,16 +464,16 @@ class MainWindow(QMainWindow):
                 self.central_widget.deselect_instances()
             self.set_actions_state(MainWindowStatesEnum.NORMAL)
         elif self.current_state == MainWindowStatesEnum.RUN:
-            self.regirect_to_instance_list()
+            self.redirect_to_instance_list()
         elif self.current_state == MainWindowStatesEnum.ABOUT:
-            self.regirect_to_instance_list()
+            self.redirect_to_instance_list()
         else:
             answer = DialogService.question(
                 self,
                 'Do you really want to cancel?'
             )
             if answer:
-                self.regirect_to_instance_list()
+                self.redirect_to_instance_list()
 
     def handle_delete_action(self) -> None:
         """
@@ -493,41 +495,67 @@ class MainWindow(QMainWindow):
                 print(err)
                 DialogService.error(self, str(err))
 
-    def handle_change_nickname(self) -> None:
+    def handle_set_nickname_action(self) -> None:
         """
-        Handle click event to change profile nickname action
+        Handle click event to set nickname action
         """
         data = DataService.get_data()
-        current_nickname = data.profile.nickname
-        text, ok = DialogService.input(
+        nickname, ok = DialogService.input(
             self,
-            'CE Player Nickname:',
-            current_nickname
+            'Set profile nickname:',
+            data.profile.nickname
         )
-        if not ok:
+        if ok:
+            try:
+                ValidationService.validate_nickname(nickname)
+                data.profile.nickname = nickname
+                DataService.save_data(data)
+                DialogService.info(self, 'Nickname updated successfully')
+                self.refresh_statusbar()
+                self.refresh_window_title()
+            except ValueError as err:
+                DialogService.error(self, str(err))
+
+    def handle_set_drive_action(self) -> None:
+        """
+        Handle click event to set CD-ROM drive action
+        """
+        data = DataService.get_data()
+        answer = DialogService.question(
+            self,
+            'The Codename Eagle registry drive key will be added/updated in ' +
+            'Windows Regedit. This action needs elevated permission. ' +
+            'Proceed?'
+        )
+        if not answer:
             return
-        if len(text.strip()) == 0:
-            DialogService.error(
-                self,
-                'The nickname cannot be empty'
-            )
-        elif len(text) > 10:
-            DialogService.error(
-                self,
-                'The custom nickname has a limit of 10 characters'
-            )
-        else:
-            data.profile.nickname = text
-            DataService.save_data(data)
-            self.refresh_statusbar()
-            self.update_window_title()
-            if isinstance(self.central_widget, InstanceRunFrame):
-                self.central_widget.refresh_run_arguments()
-                self.central_widget.refresh_connect_arguments()
+        drive, ok = DialogService.combobox(
+            self,
+            'Select the CD-ROM/ISO drive:',
+            [d + ':' for d in MainWindow.DRIVES],
+            data.cd_drive
+        )
+        if ok:
+            try:
+                WinRegService.update_drive_key(drive)
+                data.cd_drive = drive
+                DataService.save_data(data)
+                DialogService.info(self, 'Regedit key updated successfully')
+            except Exception as err:
+                DialogService.error(self, str(err))
 
     ###########################################################################
     # Refreshes
     ###########################################################################
+
+    def refresh_window_title(self) -> None:
+        """
+        Update window top bar title with application TITLE and VERSION
+        """
+        nickname = DataService.get_data().profile.nickname
+        self.setWindowTitle(
+            f'{AppInfo.TITLE} {AppInfo.VERSION} ({nickname})'
+        )
 
     def refresh_statusbar(self) -> None:
         """

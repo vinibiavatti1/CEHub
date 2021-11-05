@@ -22,5 +22,6 @@
         <file alias="address-add-icon">icons/world_add.png</file>
         <file alias="address-delete-icon">icons/world_delete.png</file>
         <file alias="about-icon">icons/information.png</file>
+        <file alias="drive-icon">icons/drive_edit.png</file>
     </qresource>
 </RCC>

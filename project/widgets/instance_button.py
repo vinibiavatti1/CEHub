@@ -5,7 +5,7 @@ from project.enums.main_window_states_enum import MainWindowStatesEnum
 from project.models.instance_model import InstanceModel
 from project.services.data_service import DataService
 from project.services.dialog_service import DialogService
-from project.utils.path_utils import PathUtils
+from project.services.path_service import PathService
 from PyQt5.QtWidgets import QPushButton
 import os
 
@@ -24,7 +24,7 @@ class InstanceButton(QPushButton):
         self.instance = instance
         self.list_frame = list_frame
         self.main_window = main_window
-        self.instance_path = PathUtils.get_instance_path(instance.name)
+        self.instance_path = PathService.get_instance_path(instance.name)
         self._build()
 
     ###########################################################################

@@ -21,7 +21,6 @@ os.system(
 
 # Create dirs
 os.mkdir(os.path.join(BUILD_DIR, 'resources'))
-os.mkdir(os.path.join(BUILD_DIR, 'data'))
 os.mkdir(os.path.join(BUILD_DIR, 'instances'))
 
 # Copy dir and files
@@ -40,10 +39,6 @@ shutil.copyfile(
 shutil.copytree(
     os.path.join(CURRENT_DIR, 'game'),
     os.path.join(BUILD_DIR, 'game'),
-)
-shutil.copyfile(
-    os.path.join(CURRENT_DIR, 'data', 'data_initial.dat'),
-    os.path.join(BUILD_DIR, 'data', 'data.dat'),
 )
 
 # Make zip

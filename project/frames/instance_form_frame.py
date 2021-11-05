@@ -20,6 +20,7 @@ from project.enums.instance_version_enum import InstanceVersionEnum
 from project.enums.instance_type_enum import InstanceTypeEnum
 from project.enums.instance_patch_enum import InstancePatchEnum
 from project.services.data_service import DataService
+from project.services.validation_service import ValidationService
 
 
 class InstanceFormFrame(QFrame):
@@ -402,18 +403,14 @@ class InstanceFormFrame(QFrame):
                 )
 
     def _validate_client_form(self) -> None:
-        if self.instance_nickname_field.currentIndex() == 'Custom...':
+        if self.instance_nickname_field.currentText() == 'Custom...':
             custom_nickname = self.instance_custom_nickname_field.text()
-            if not custom_nickname:
+            try:
+                ValidationService.validate_nickname(custom_nickname)
+            except ValueError as err:
                 self.tabs.setCurrentIndex(1)
                 self.instance_custom_nickname_field.setFocus()
-                raise ValueError('The custom nickname must be set')
-            elif len(custom_nickname) > 10:
-                self.tabs.setCurrentIndex(1)
-                self.instance_custom_nickname_field.setFocus()
-                raise ValueError(
-                    'The custom nickname has a limit of 10 characters'
-                )
+                raise err
 
     def _validate_server_form(self) -> None:
         hostname = self.instance_host_name_field.text()
@@ -455,7 +452,7 @@ class InstanceFormFrame(QFrame):
                     data = DataService.get_data()
                     data.instances.append(instance)
                     DataService.save_data(data)
-                    self.parent().regirect_to_instance_list()
+                    self.parent().redirect_to_instance_list()
                 except Exception as err:
                     message = QMessageBox()
                     message.critical(self, 'Error', str(err))
@@ -480,7 +477,7 @@ class InstanceFormFrame(QFrame):
                         data.instances.append(instance)
                         break
                 DataService.save_data(data)
-                self.main_window.regirect_to_instance_list()
+                self.main_window.redirect_to_instance_list()
 
     ###########################################################################
     # Form models

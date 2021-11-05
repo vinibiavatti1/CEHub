@@ -6,14 +6,9 @@ class DialogService:
     Dialog renderization service
     """
 
-    @classmethod
-    def question(self, parent, message: str) -> bool:
-        """
-        Render a question dialog
-        """
-        msg = QMessageBox()
-        answer = msg.question(parent, 'Question', message)
-        return True if answer == QMessageBox.Yes else False
+    ###########################################################################
+    # Messages
+    ###########################################################################
 
     @classmethod
     def info(self, parent, message: str) -> None:
@@ -22,15 +17,6 @@ class DialogService:
         """
         msg = QMessageBox()
         msg.information(parent, 'Info', message)
-
-    @classmethod
-    def input(self, parent, message: str,
-              text: str = None) -> tuple[str, bool]:
-        """
-        Render a text input dialog
-        """
-        text, ok = QInputDialog.getText(parent, 'Input', message, text=text)
-        return text, ok
 
     @classmethod
     def warning(self, parent, message: str) -> None:
@@ -47,3 +33,45 @@ class DialogService:
         """
         msg = QMessageBox()
         msg.critical(parent, 'Error', message)
+
+    ###########################################################################
+    # Inputs
+    ###########################################################################
+
+    @classmethod
+    def input(self, parent, message: str,
+              text: str = None) -> tuple[str, bool]:
+        """
+        Render a text input dialog
+        """
+        text, ok = QInputDialog.getText(parent, 'Input', message, text=text)
+        return text, ok
+
+    @classmethod
+    def combobox(self, parent, message: str,
+                 items: list[str], current: str = None) -> tuple[str, bool]:
+        """
+        Render an combobox input dialog
+        """
+        current_index = None
+        if current:
+            for i, item in enumerate(items):
+                if item == current:
+                    current_index = i
+                    break
+        return QInputDialog().getItem(
+            parent, 'Select', message, items, current_index, False
+        )
+
+    ###########################################################################
+    # Questions
+    ###########################################################################
+
+    @classmethod
+    def question(self, parent, message: str) -> bool:
+        """
+        Render a question dialog
+        """
+        msg = QMessageBox()
+        answer = msg.question(parent, 'Question', message)
+        return True if answer == QMessageBox.Yes else False
