@@ -182,7 +182,7 @@ class MainWindow(QMainWindow):
         self.open_folder_action = \
             QAction(QIcon(':open-folder-icon'), 'Open Folder', self)
         self.open_dg_action = \
-            QAction(QIcon(':open-dg-icon'), 'Open Dg&oodoo', self)
+            QAction(QIcon(':open-dg-icon'), 'Open DgVoodoo', self)
         self.run_action = \
             QAction(QIcon(':run-icon'), 'Run Instance', self)
         self.connect_action = \
@@ -202,7 +202,7 @@ class MainWindow(QMainWindow):
         self.set_nickname_action = \
             QAction(QIcon(':profile-icon'), 'Set Profile Nickname', self)
         self.set_drive_action = \
-            QAction(QIcon(':drive-icon'), 'Set CD-ROM Drive', self)
+            QAction(QIcon(':drive-icon'), 'Set CD-ROM/ISO Drive', self)
 
     def register_handlers(self) -> None:
         """
@@ -524,8 +524,8 @@ class MainWindow(QMainWindow):
         answer = DialogService.question(
             self,
             'The Codename Eagle registry drive key will be added/updated in ' +
-            'Windows Regedit. This action needs elevated permission. ' +
-            'Proceed?'
+            'Windows Registry Editor. This action usually needs elevated ' +
+            'permission. Proceed?'
         )
         if not answer:
             return
@@ -540,7 +540,7 @@ class MainWindow(QMainWindow):
                 WinRegService.update_drive_key(drive)
                 data.cd_drive = drive
                 DataService.save_data(data)
-                DialogService.info(self, 'Regedit key updated successfully')
+                DialogService.info(self, 'Registry updated successfully')
             except Exception as err:
                 DialogService.error(self, str(err))
 

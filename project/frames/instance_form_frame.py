@@ -113,6 +113,11 @@ class InstanceFormFrame(QFrame):
             self.instance_patch_field.addItem(option.value, option)
         self.instance_tab_layout.addWidget(self.instance_patch_field)
 
+        # Info Label
+        self.info_label = QLabel(self)
+        self.info_label.setWordWrap(True)
+        self.instance_tab_layout.addWidget(self.info_label)
+
     def _build_client_form(self) -> None:
         """
         Build the client form (tab 2)
@@ -354,9 +359,17 @@ class InstanceFormFrame(QFrame):
             self.instance_version_field.setDisabled(True)
             self.instance_patch_field.setDisabled(True)
             self.instance_patch_field.setCurrentIndex(0)
+            self.info_label.setText(
+                'Note: The Single Player requires the Codename Eagle CD ' +
+                'to be executed. It is recommended to use an ISO image ' +
+                'mounted into a drive. The default drive must be set by the ' +
+                '"Configuration > Set CD-ROM/ISO Drive" menu to make the ' +
+                'game to find the media location.'
+            )
         else:
             self.instance_version_field.setCurrentIndex(3)
             self.instance_patch_field.setCurrentIndex(3)
+            self.info_label.setText('')
             if value == InstanceTypeEnum.CLIENT.value:
                 self.server_tab.setDisabled(True)
             elif value == InstanceTypeEnum.DEDICATED.value:
@@ -367,6 +380,9 @@ class InstanceFormFrame(QFrame):
     ###########################################################################
 
     def validate_forms(self, edit: bool = False) -> bool:
+        """
+        Validate forms fields
+        """
         try:
             if not edit:
                 self._validate_instance_form()
@@ -386,7 +402,7 @@ class InstanceFormFrame(QFrame):
 
     def _validate_instance_form(self) -> None:
         """
-        Validate instance form
+        Validate instance form fields
         """
         instance_name = self.instance_name_field.text()
         if len(instance_name.strip()) == 0:
@@ -403,6 +419,9 @@ class InstanceFormFrame(QFrame):
                 )
 
     def _validate_client_form(self) -> None:
+        """
+        Validate client form fields
+        """
         if self.instance_nickname_field.currentText() == 'Custom...':
             custom_nickname = self.instance_custom_nickname_field.text()
             try:
@@ -413,6 +432,9 @@ class InstanceFormFrame(QFrame):
                 raise err
 
     def _validate_server_form(self) -> None:
+        """
+        Validate server form fields
+        """
         hostname = self.instance_host_name_field.text()
         if not hostname:
             self.tabs.setCurrentIndex(2)
