@@ -21,7 +21,7 @@ class SetupService:
         Install an instance by its version to /instances folder
         """
         print(f'Installing {instance.name} instance...')
-        cls.create_instance_folder(instance.name)
+        cls._create_instance_folder(instance.name)
         if instance.version == InstanceVersionEnum.FULL.value:
             cls._install_full_version(instance)
         elif instance.version == InstanceVersionEnum.MP_DEMO_OFFICIAL.value:
@@ -47,13 +47,12 @@ class SetupService:
                 break
         DataService.save_data(data)
 
-
     ###########################################################################
     # Private methods
     ###########################################################################
 
     @classmethod
-    def create_instance_folder(cls, instance_name: str) -> None:
+    def _create_instance_folder(cls, instance_name: str) -> None:
         """
         Create instance directory
         """
