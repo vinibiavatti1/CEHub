@@ -54,6 +54,16 @@ class CommandLineService:
             ))
         return ' '.join(arguments)
 
+    @classmethod
+    def generate_map_editor_arguments(cls, map_code: str) -> str:
+        """
+        Generate map editor command args.
+        """
+        arguments = [CommandLineService.CE_EXE_NAME]
+        arguments.append('+edit')
+        arguments.append(f'"{map_code}"')
+        return ' '.join(arguments)
+
     ###########################################################################
     # Private methods
     ###########################################################################

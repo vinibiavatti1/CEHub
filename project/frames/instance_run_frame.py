@@ -1,5 +1,6 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
+from project.enums.game_map_folder_enum import GameMapFolderEnum
 from project.enums.instance_type_enum import InstanceTypeEnum
 from project.models.connection_model import ConnectionModel
 from project.models.instance_model import InstanceModel
@@ -82,6 +83,14 @@ class InstanceRunFrame(QFrame):
         self.grid_tab_run = QVBoxLayout()
         self.grid_tab_run.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.tab_run.setLayout(self.grid_tab_run)
+
+        # Map Selection
+        if self.instance.type == InstanceTypeEnum.MAP_EDITOR.value:
+            self.grid_tab_run.addWidget(QLabel('Map to Edit', self))
+            self.map_edit_field = QComboBox(self)
+            for option in GameMapFolderEnum:
+                self.map_edit_field.addItem(option.value, option)
+            self.grid_tab_run.addWidget(self.map_edit_field)
 
         # Run arguments
         self.grid_tab_run.addWidget(QLabel('Command Line', self))
@@ -174,6 +183,12 @@ class InstanceRunFrame(QFrame):
                 CommandLineService.CE_EXE_NAME
             )
             return
+        elif instance_type == InstanceTypeEnum.MAP_EDITOR.value:
+            arguments = CommandLineService.generate_map_editor_arguments(
+                self.map_edit_field.currentData().name
+            )
+            self.command_line_field.setText(arguments)
+            return
         profile = DataService.get_data().profile.nickname
         arguments = CommandLineService.generate_arguments(
             self.instance, profile
@@ -216,6 +231,10 @@ class InstanceRunFrame(QFrame):
         self.address_field.textChanged.connect(
             self.handle_address_change
         )
+        if self.instance.type == InstanceTypeEnum.MAP_EDITOR.value:
+            self.map_edit_field.currentTextChanged.connect(
+                self._handle_map_edit_change
+            )
 
     def handle_run(self) -> None:
         """
@@ -336,3 +355,9 @@ class InstanceRunFrame(QFrame):
         ))
         DataService.save_data(data)
         self.refresh_addresses()
+
+    def _handle_map_edit_change(self, value) -> None:
+        """
+        Map select change event handler.
+        """
+        self.refresh_run_arguments()

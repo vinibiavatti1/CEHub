@@ -21,6 +21,7 @@ from project.enums.instance_type_enum import InstanceTypeEnum
 from project.enums.instance_patch_enum import InstancePatchEnum
 from project.services.data_service import DataService
 from project.services.validation_service import ValidationService
+import socket
 
 
 class InstanceFormFrame(QFrame):
@@ -44,6 +45,8 @@ class InstanceFormFrame(QFrame):
         )
         if self.instance is not None:
             self._fill_form()
+        else:
+            self._fill_form_with_default_data()
 
     def _build(self):
         """
@@ -270,6 +273,15 @@ class InstanceFormFrame(QFrame):
             props.game_type
         )
 
+    def _fill_form_with_default_data(self) -> None:
+        """
+        Fill form with default data.
+        """
+        self.instance_type_field.setCurrentIndex(1)
+        self.instance_host_name_field.setText(
+            socket.gethostname()
+        )
+
     ###########################################################################
     # Handlers
     ###########################################################################
@@ -357,14 +369,25 @@ class InstanceFormFrame(QFrame):
             self.client_tab.setDisabled(True)
             self.instance_version_field.setCurrentIndex(0)
             self.instance_version_field.setDisabled(True)
-            self.instance_patch_field.setDisabled(True)
             self.instance_patch_field.setCurrentIndex(0)
+            self.instance_patch_field.setDisabled(True)
             self.info_label.setText(
                 'Note: The Single Player requires the Codename Eagle CD ' +
                 'to be executed. It is recommended to use an ISO image ' +
                 'mounted into a drive. The default drive must be set by the ' +
                 '"Configuration > Set CD-ROM/ISO Drive" menu to make the ' +
                 'game to find the media location.'
+            )
+        elif value == InstanceTypeEnum.MAP_EDITOR.value:
+            self.server_tab.setDisabled(True)
+            self.client_tab.setDisabled(True)
+            self.instance_version_field.setCurrentIndex(3)
+            self.instance_version_field.setDisabled(True)
+            self.instance_patch_field.setCurrentIndex(3)
+            self.instance_patch_field.setDisabled(True)
+            self.info_label.setText(
+                'Note: The selection of the map to edit will be available ' +
+                'in "run instance" screen.'
             )
         else:
             self.instance_version_field.setCurrentIndex(3)

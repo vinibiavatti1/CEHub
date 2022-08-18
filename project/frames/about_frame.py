@@ -53,7 +53,7 @@ class AboutFrame(QFrame):
         self._container.addWidget(QLabel('Discord Community', self))
         app_field = QLineEdit()
         app_field.setReadOnly(True)
-        app_field.setText('https://discord.gg/VGW9AaQJne')
+        app_field.setText('https://discord.gg/gGaMUJA9st')
         self._container.addWidget(app_field)
 
         # Reddit info

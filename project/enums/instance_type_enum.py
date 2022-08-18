@@ -9,3 +9,4 @@ class InstanceTypeEnum(Enum):
     CLIENT = 'Multiplayer Client'
     SERVER = 'Multiplayer Server'
     DEDICATED = 'Multiplayer Server (Dedicated)'
+    MAP_EDITOR = "Map Editor"

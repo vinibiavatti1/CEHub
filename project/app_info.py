@@ -1,8 +1,8 @@
 class AppInfo:
     """
-    Application information class
+    Application info class
     """
     TITLE = 'CEHub'
-    VERSION = 'v1.1.0'
+    VERSION = 'v1.2.0'
     DATA_VERSION = 2
     AUTHOR = 'ViniB'
