@@ -439,8 +439,8 @@ class InstanceFormFrame(QFrame):
                 self.instance_name_field.setFocus()
                 self.tabs.setCurrentIndex(0)
                 raise ValueError(
-                    f'The name "{instance_name}" is already being used to \
-                    other instance.'
+                    f'The name "{instance_name}" is already being used to ' +
+                    'other instance. Please, choose other name.'
                 )
 
     def _validate_client_form(self) -> None:
