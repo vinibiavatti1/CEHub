@@ -2,11 +2,11 @@ import psutil
 import os
 
 from project.enums.process_status_enum import ProcessStatusEnum
+from project.services.data_service import DataService
 
 
 class ProcessService:
 
-    CE_PROCESS_NAME = 'ce.exe'
     LOBBY_PROCESS_NAME = 'lobby.exe'
 
     @classmethod
@@ -15,7 +15,7 @@ class ProcessService:
         Kill the ce.exe and lobby.exe processes
         """
         for p in psutil.process_iter():
-            if p.name().lower() == ProcessService.CE_PROCESS_NAME:
+            if p.name().lower() == DataService.get_data().ce_exec_file_name:
                 p.kill()
             if p.name().lower() == ProcessService.LOBBY_PROCESS_NAME:
                 p.kill()
@@ -27,7 +27,7 @@ class ProcessService:
         Return the status of the ce.exe process
         """
         for p in psutil.process_iter():
-            if p.name().lower() == ProcessService.CE_PROCESS_NAME:
+            if p.name().lower() == DataService.get_data().ce_exec_file_name:
                 return ProcessStatusEnum.RUNNING
         return ProcessStatusEnum.STOPPED
 

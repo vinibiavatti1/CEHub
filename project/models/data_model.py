@@ -12,11 +12,12 @@ class DataModel:
         """
         Construct a new data model
         """
-        self._version: int = 2
+        self._version: int = 3
         self._profile: ProfileModel = ProfileModel()
         self._instances: list[InstanceModel] = []
         self._connections: list[ConnectionModel] = []
         self._cd_drive: str = 'E:'
+        self._ce_exec_file_name: str = 'ce.exe'
         self._register_default_connections()
 
     ###########################################################################
@@ -43,6 +44,10 @@ class DataModel:
     def version(self) -> int:
         return self._version
 
+    @property
+    def ce_exec_file_name(self) -> str:
+        return self._ce_exec_file_name
+
     @version.setter
     def version(self, new_version: int) -> None:
         self._version = new_version
@@ -50,6 +55,10 @@ class DataModel:
     @cd_drive.setter
     def cd_drive(self, drive: str) -> None:
         self._cd_drive = drive
+
+    @ce_exec_file_name.setter
+    def ce_exec_file_name(self, file_name: str) -> None:
+        self._ce_exec_file_name = file_name
 
     ###########################################################################
     # Public methods

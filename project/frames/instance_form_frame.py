@@ -110,7 +110,9 @@ class InstanceFormFrame(QFrame):
         self.instance_tab_layout.addWidget(self.instance_version_field)
 
         # Install Patch
-        self.instance_tab_layout.addWidget(QLabel('Instance Patch', self))
+        self.instance_tab_layout.addWidget(QLabel(
+            'Instance Patch (Only available for Full Version)', self)
+        )
         self.instance_patch_field = QComboBox(self)
         for option in InstancePatchEnum:
             self.instance_patch_field.addItem(option.value, option)

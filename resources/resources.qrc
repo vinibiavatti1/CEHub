@@ -23,5 +23,6 @@
         <file alias="address-delete-icon">icons/world_delete.png</file>
         <file alias="about-icon">icons/information.png</file>
         <file alias="drive-icon">icons/drive_edit.png</file>
+		<file alias="ce-exec-icon">icons/page_white_gear.png</file>
     </qresource>
 </RCC>

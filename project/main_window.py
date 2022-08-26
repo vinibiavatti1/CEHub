@@ -139,6 +139,7 @@ class MainWindow(QMainWindow):
         config_menu = QMenu('Configuration', self)
         config_menu.addAction(self.set_nickname_action)
         config_menu.addAction(self.set_drive_action)
+        config_menu.addAction(self.set_ce_exec_file)
         self.menu_bar.addMenu(config_menu)
 
     def build_about_menu(self) -> None:
@@ -203,6 +204,8 @@ class MainWindow(QMainWindow):
             QAction(QIcon(':profile-icon'), 'Set Profile Nickname', self)
         self.set_drive_action = \
             QAction(QIcon(':drive-icon'), 'Set CD-ROM/ISO Drive', self)
+        self.set_ce_exec_file = \
+            QAction(QIcon(':ce-exec-icon'), 'Set CE executable file', self)
 
     def register_handlers(self) -> None:
         """
@@ -252,6 +255,9 @@ class MainWindow(QMainWindow):
         )
         self.set_drive_action.triggered.connect(
             lambda: self.handle_set_drive_action()
+        )
+        self.set_ce_exec_file.triggered.connect(
+            lambda: self.handle_set_ce_exec_file()
         )
 
     ###########################################################################
@@ -515,6 +521,23 @@ class MainWindow(QMainWindow):
                 self.refresh_window_title()
             except ValueError as err:
                 DialogService.error(self, str(err))
+
+    def handle_set_ce_exec_file(self) -> None:
+        """
+        Set the CE executable name.
+        """
+        data = DataService.get_data()
+        answer, ok = DialogService.input(
+            self,
+            'Enter the CE executable file. Normally, the executable file is ' +
+            '"ce.exe" or "game.exe"',
+            data.ce_exec_file_name
+        )
+        if not ok or len(answer) == 0:
+            return
+        data.ce_exec_file_name = answer
+        DataService.save_data(data)
+        DialogService.info(self, 'CE executable name changed successfully')
 
     def handle_set_drive_action(self) -> None:
         """

@@ -4,7 +4,9 @@ from project.enums.game_map_folder_enum import GameMapFolderEnum
 from project.enums.instance_type_enum import InstanceTypeEnum
 from project.models.connection_model import ConnectionModel
 from project.models.instance_model import InstanceModel
+from project.services.ce_drive_service import CEDriveService
 from project.services.data_service import DataService
+from project.services.dialog_service import DialogService
 from project.services.path_service import PathService
 from project.services.command_line_service import CommandLineService
 from project.services.process_service import ProcessService
@@ -92,16 +94,39 @@ class InstanceRunFrame(QFrame):
                 self.map_edit_field.addItem(option.value, option)
             self.grid_tab_run.addWidget(self.map_edit_field)
 
+        # SP CD-ROM message
+        if self.instance.type == InstanceTypeEnum.SP.value:
+            message = 'NOTE: To run the single player instance, make sure ' \
+                'the CD-ROM or image file is mount in a drive.'
+            self.grid_tab_run.addWidget(QLabel(message, self))
+
         # Run arguments
         self.grid_tab_run.addWidget(QLabel('Command Line', self))
         self.command_line_field = QLineEdit(self)
         self.grid_tab_run.addWidget(self.command_line_field)
 
+        # Run container
+        self.run_btn_frame = QFrame()
+        self.run_btn_frame_grid = QHBoxLayout()
+        self.run_btn_frame_grid.setContentsMargins(0, 0, 0, 0)
+        self.run_btn_frame_grid.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.run_btn_frame.setLayout(self.run_btn_frame_grid)
+        self.grid_tab_run.addWidget(self.run_btn_frame)
+
         # Run button
-        self.run_button = QPushButton('Run!', self)
+        run_text = 'Run!' if self.instance.type != \
+            InstanceTypeEnum.MAP_EDITOR.value else 'Run Editor'
+        self.run_button = QPushButton(run_text, self)
         self.run_button.setIcon(QIcon(':run-icon'))
         self.run_button.setFixedWidth(150)
-        self.grid_tab_run.addWidget(self.run_button)
+        self.run_btn_frame_grid.addWidget(self.run_button)
+
+        # Run map editor test button
+        if self.instance.type == InstanceTypeEnum.MAP_EDITOR.value:
+            self.run_test_button = QPushButton('Test Map', self)
+            self.run_test_button.setIcon(QIcon(':run-icon'))
+            self.run_test_button.setFixedWidth(150)
+            self.run_btn_frame_grid.addWidget(self.run_test_button)
 
         # Connect Tab
         self.grid_tab_connect = QVBoxLayout()
@@ -180,7 +205,7 @@ class InstanceRunFrame(QFrame):
         if instance_type == InstanceTypeEnum.CLIENT.value or \
                 instance_type == InstanceTypeEnum.SP.value:
             self.command_line_field.setText(
-                CommandLineService.CE_EXE_NAME
+                DataService.get_data().ce_exec_file_name
             )
             return
         elif instance_type == InstanceTypeEnum.MAP_EDITOR.value:
@@ -226,7 +251,7 @@ class InstanceRunFrame(QFrame):
             self.handle_connect
         )
         self.run_button.clicked.connect(
-            self.handle_run
+            lambda: self.handle_run(True)
         )
         self.address_field.textChanged.connect(
             self.handle_address_change
@@ -235,15 +260,41 @@ class InstanceRunFrame(QFrame):
             self.map_edit_field.currentTextChanged.connect(
                 self._handle_map_edit_change
             )
+            self.run_test_button.clicked.connect(
+                self._handle_run_test_button_click
+            )
 
-    def handle_run(self) -> None:
+    def _handle_run_test_button_click(self) -> None:
+        """
+        Handle run test button event for map editor instances
+        """
+        self.handle_run(False)
+
+    def handle_run(self, with_args: bool = True) -> None:
         """
         Handle run button click event
         """
+        command_line = DataService.get_data().ce_exec_file_name
+        if with_args:
+            command_line = self.command_line_field.text()
         try:
+            # Check if single player instance has drive set
+            cd_drive = DataService.get_data().cd_drive
+            if self.instance.type == InstanceTypeEnum.SP.value:
+                drive_exists = CEDriveService.validate_ce_drive_exists(
+                    cd_drive
+                )
+                if not drive_exists:
+                    message = 'Please, insert the CR-ROM or mount the CE ' \
+                        f'image file into {cd_drive} drive to start the ' \
+                        'single player instance. If this drive is not ' \
+                        'correct, access the menu "Configuration > Set ' \
+                        'CD-ROM/ISO Drive" to select the correct one.'
+                    DialogService.error(self, message)
+                    return
             ProcessService.execute(
                 PathService.get_instance_path(self.instance.name),
-                self.command_line_field.text()
+                command_line
             )
         except Exception as err:
             message = QMessageBox()

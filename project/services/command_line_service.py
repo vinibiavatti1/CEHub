@@ -1,5 +1,6 @@
 from project.enums.instance_type_enum import InstanceTypeEnum
 from project.models.instance_model import InstanceModel
+from project.services.data_service import DataService
 
 
 class CommandLineService:
@@ -7,8 +8,6 @@ class CommandLineService:
     Service to execute and generate command line arguments for instance
     execution
     """
-
-    CE_EXE_NAME: str = 'ce.exe'
 
     ###########################################################################
     # Public methods
@@ -36,7 +35,7 @@ class CommandLineService:
             +name "joe black"
             +team "red" [values: red,blue or auto]
         """
-        arguments = [CommandLineService.CE_EXE_NAME]
+        arguments = [DataService.get_data().ce_exec_file_name]
         if instance.type == InstanceTypeEnum.CLIENT.value:
             arguments.append(cls._generate_client_arguments(
                 instance, profile_nickname, connect
@@ -59,7 +58,7 @@ class CommandLineService:
         """
         Generate map editor command args.
         """
-        arguments = [CommandLineService.CE_EXE_NAME]
+        arguments = [DataService.get_data().ce_exec_file_name]
         arguments.append('+edit')
         arguments.append(f'"{map_code}"')
         return ' '.join(arguments)
