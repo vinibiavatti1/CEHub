@@ -533,7 +533,10 @@ class MainWindow(QMainWindow):
             '"ce.exe" or "game.exe"',
             data.ce_exec_file_name
         )
-        if not ok or len(answer) == 0:
+        if not ok:
+            return
+        answer = answer.strip()
+        if len(answer) == 0:
             return
         data.ce_exec_file_name = answer
         DataService.save_data(data)
