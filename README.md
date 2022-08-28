@@ -19,7 +19,7 @@ This tool provides a way to create and manage instances of Codeaname Eagle game.
 - Codename Eagle Multiplayer server: https://www.codenameeaglemultiplayer.com/
 - Discord Community: https://discord.gg/VGW9AaQJne
 - Reddit Community: https://www.reddit.com/r/CodenameEagle/
-- No Vinib's Land Map Project: https://github.com/vinibiavatti1/CodenameEagleNVLMap
+- No Vinib's Land (NVL) Map Project: https://github.com/vinibiavatti1/CodenameEagleNVLMap
 
 ### Images
 <img src="https://raw.githubusercontent.com/vinibiavatti1/CEHub/main/resources/frames/1.png" width="500"/>
