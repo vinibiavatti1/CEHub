@@ -1,5 +1,6 @@
 from PyQt5.QtGui import QIcon
 from project.enums.instance_type_enum import InstanceTypeEnum
+from project.frames.map_manager_frame import MapManagerFrame
 from project.models.instance_model import InstanceModel
 from project.services.data_service import DataService
 from project.services.process_service import ProcessService
@@ -43,6 +44,7 @@ class MainWindow(QMainWindow):
         super().__init__(parent)
         self.current_instance: InstanceModel = None
         self.current_state: MainWindowStatesEnum = None
+        self.central_widget = None
         self.setWindowIcon(QIcon(':ce-icon'))
         self.resize(800, 600)
         self.register_actions()
@@ -80,6 +82,8 @@ class MainWindow(QMainWindow):
         toolbar.addAction(self.kill_processes_action)
         toolbar.addAction(self.refresh_action)
         toolbar.addSeparator()
+        toolbar.addAction(self.map_manager_action)
+        toolbar.addSeparator()
         toolbar.addAction(self.setup_action)
         toolbar.addAction(self.save_action)
         toolbar.addAction(self.cancel_action)
@@ -108,6 +112,8 @@ class MainWindow(QMainWindow):
         instance_menu.addSeparator()
         instance_menu.addAction(self.run_action)
         instance_menu.addAction(self.connect_action)
+        instance_menu.addSeparator()
+        instance_menu.addAction(self.map_manager_action)
         self.menu_bar.addMenu(instance_menu)
 
     def build_open_menu(self) -> None:
@@ -206,6 +212,8 @@ class MainWindow(QMainWindow):
             QAction(QIcon(':drive-icon'), 'Set CD-ROM/ISO Drive', self)
         self.set_ce_exec_file = \
             QAction(QIcon(':ce-exec-icon'), 'Set CE executable file', self)
+        self.map_manager_action = \
+            QAction(QIcon(':map-manager-icon'), 'Map Manager', self)
 
     def register_handlers(self) -> None:
         """
@@ -259,6 +267,9 @@ class MainWindow(QMainWindow):
         self.set_ce_exec_file.triggered.connect(
             lambda: self.handle_set_ce_exec_file()
         )
+        self.map_manager_action.triggered.connect(
+            lambda: self.handle_map_manager_action()
+        )
 
     ###########################################################################
     # State
@@ -282,6 +293,8 @@ class MainWindow(QMainWindow):
             self.enable_actions_to_instance_running_state()
         elif state == MainWindowStatesEnum.ABOUT:
             self.enable_actions_to_about_state()
+        elif state == MainWindowStatesEnum.MAP_MANAGER:
+            self.enable_actions_to_map_manager_state()
 
     def disable_actions(self) -> None:
         """
@@ -299,6 +312,7 @@ class MainWindow(QMainWindow):
         self.cancel_action.setDisabled(True)
         self.setup_action.setDisabled(True)
         self.kill_processes_action.setDisabled(True)
+        self.map_manager_action.setDisabled(True)
 
     def enable_actions_to_normal_state(self) -> None:
         """
@@ -337,6 +351,7 @@ class MainWindow(QMainWindow):
         self.refresh_action.setDisabled(False)
         self.cancel_action.setDisabled(False)
         self.kill_processes_action.setDisabled(False)
+        self.map_manager_action.setDisabled(False)
 
     def enable_actions_to_instance_running_state(self) -> None:
         """
@@ -350,6 +365,14 @@ class MainWindow(QMainWindow):
         Enable the actions for ABOUT state
         """
         self.cancel_action.setDisabled(False)
+
+    def enable_actions_to_map_manager_state(self) -> None:
+        """
+        Enable the actions for MAP_MANAGER state
+        """
+        self.open_folder_action.setDisabled(False)
+        self.cancel_action.setDisabled(False)
+        self.refresh_action.setDisabled(False)
 
     ###########################################################################
     # Redirects
@@ -411,6 +434,10 @@ class MainWindow(QMainWindow):
         """
         Handle click event to refresh action
         """
+        if isinstance(self.central_widget, MapManagerFrame):
+            self.central_widget.load_maps_from_levels_nfo_file()
+            self.central_widget.refresh_map_list()
+            return
         self.refresh_statusbar()
         self.current_instance = None
         self.set_actions_state(MainWindowStatesEnum.NORMAL)
@@ -472,6 +499,8 @@ class MainWindow(QMainWindow):
         elif self.current_state == MainWindowStatesEnum.RUN:
             self.redirect_to_instance_list()
         elif self.current_state == MainWindowStatesEnum.ABOUT:
+            self.redirect_to_instance_list()
+        elif self.current_state == MainWindowStatesEnum.MAP_MANAGER:
             self.redirect_to_instance_list()
         else:
             answer = DialogService.question(
@@ -569,6 +598,13 @@ class MainWindow(QMainWindow):
                 DialogService.info(self, 'Registry updated successfully')
             except Exception as err:
                 DialogService.error(self, str(err))
+
+    def handle_map_manager_action(self) -> None:
+        """
+        Handle map manager option click event
+        """
+        self.set_central_widget(MapManagerFrame(self, self.current_instance))
+        self.set_actions_state(MainWindowStatesEnum.MAP_MANAGER)
 
     ###########################################################################
     # Refreshes

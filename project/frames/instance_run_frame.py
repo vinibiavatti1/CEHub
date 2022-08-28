@@ -1,12 +1,12 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
-from project.enums.game_map_folder_enum import GameMapFolderEnum
 from project.enums.instance_type_enum import InstanceTypeEnum
 from project.models.connection_model import ConnectionModel
 from project.models.instance_model import InstanceModel
 from project.services.ce_drive_service import CEDriveService
 from project.services.data_service import DataService
 from project.services.dialog_service import DialogService
+from project.services.map_manager_service import MapManagerService
 from project.services.path_service import PathService
 from project.services.command_line_service import CommandLineService
 from project.services.process_service import ProcessService
@@ -90,8 +90,9 @@ class InstanceRunFrame(QFrame):
         if self.instance.type == InstanceTypeEnum.MAP_EDITOR.value:
             self.grid_tab_run.addWidget(QLabel('Map to Edit', self))
             self.map_edit_field = QComboBox(self)
-            for option in GameMapFolderEnum:
-                self.map_edit_field.addItem(option.value, option)
+            maps = MapManagerService.list_maps_from_instance(self.instance)
+            for map in maps:
+                self.map_edit_field.addItem(map.name, map)
             self.grid_tab_run.addWidget(self.map_edit_field)
 
         # SP CD-ROM message
@@ -118,6 +119,8 @@ class InstanceRunFrame(QFrame):
             InstanceTypeEnum.MAP_EDITOR.value else 'Run Editor'
         self.run_button = QPushButton(run_text, self)
         self.run_button.setIcon(QIcon(':run-icon'))
+        if self.instance.type == InstanceTypeEnum.MAP_EDITOR.value:
+            self.run_button.setIcon(QIcon(':map-edit-icon'))
         self.run_button.setFixedWidth(150)
         self.run_btn_frame_grid.addWidget(self.run_button)
 
@@ -210,7 +213,7 @@ class InstanceRunFrame(QFrame):
             return
         elif instance_type == InstanceTypeEnum.MAP_EDITOR.value:
             arguments = CommandLineService.generate_map_editor_arguments(
-                self.map_edit_field.currentData().name
+                'LEVEL' + str(self.map_edit_field.currentData().val)
             )
             self.command_line_field.setText(arguments)
             return

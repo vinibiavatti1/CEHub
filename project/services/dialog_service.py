@@ -48,6 +48,17 @@ class DialogService:
         return text, ok
 
     @classmethod
+    def input_int(self, parent, message: str,
+                  value: int = 140) -> tuple[str, bool]:
+        """
+        Render a int input dialog
+        """
+        value, ok = QInputDialog.getInt(
+            parent, 'Input', message, value=value, min=128, max=999
+        )
+        return value, ok
+
+    @classmethod
     def combobox(self, parent, message: str,
                  items: list[str], current: str = None) -> tuple[str, bool]:
         """

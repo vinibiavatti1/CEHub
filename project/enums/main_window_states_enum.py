@@ -11,3 +11,4 @@ class MainWindowStatesEnum(Enum):
     INSTANCE_SELECTED = 3
     RUN = 4
     ABOUT = 5
+    MAP_MANAGER = 6

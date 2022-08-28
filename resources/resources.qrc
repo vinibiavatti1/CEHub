@@ -24,5 +24,11 @@
         <file alias="about-icon">icons/information.png</file>
         <file alias="drive-icon">icons/drive_edit.png</file>
 		<file alias="ce-exec-icon">icons/page_white_gear.png</file>
+		<file alias="map-manager-icon">icons/map_edit.png</file>
+		<file alias="map-add-icon">icons/map_add.png</file>
+		<file alias="map-delete-icon">icons/map_delete.png</file>
+		<file alias="map-upload-icon">icons/folder_add.png</file>
+        <file alias="map-export-icon">icons/folder_go.png</file>
+		<file alias="map-edit-icon">icons/map_go.png</file>
     </qresource>
 </RCC>
