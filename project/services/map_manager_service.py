@@ -20,13 +20,12 @@ class MapManagerService:
     Name:The airbase Val:132
     Name:Fortress Val:133
     Name:Fever valley Val:134
-    Name:NML 2021 Val:135
-    Name:NMLPlus Val:250
     """
     NATIVE_MAPS: list[int] = [128, 129, 130, 131, 132, 133, 134]
     MAP_RECORDS_FILE: str = 'LEVELS.nfo'
     MAP_RECORD_NAME_KEY: str = 'Name:'
     MAP_RECORD_VALUE_KEY: str = 'Val:'
+    LEVEL_FOLDER_NAME: str = 'LEVEL'
 
     @classmethod
     def list_maps_from_instance(cls, instance: InstanceModel
@@ -53,11 +52,18 @@ class MapManagerService:
             if cls.MAP_RECORD_VALUE_KEY not in stripped_line:
                 continue
             map_record_str = stripped_line.split(cls.MAP_RECORD_VALUE_KEY)
+            if len(map_record_str) != 2:
+                continue
             map_name = map_record_str[0].replace(
                 cls.MAP_RECORD_NAME_KEY, ''
             ).strip()
             map_val = map_record_str[1].strip()
-            map_list.append(MapModel(map_name, int(map_val)))
+            try:
+                map_val = int(map_val)
+            except ValueError as err:
+                print(err)
+                continue
+            map_list.append(MapModel(map_name, map_val))
         return map_list
 
     @classmethod
@@ -73,7 +79,7 @@ class MapManagerService:
         Get the path to access levels.nfo
         """
         instance_path = PathService.get_instance_path(instance.name)
-        return instance_path + f'\\{cls.MAP_RECORDS_FILE}'
+        return instance_path + f'/{cls.MAP_RECORDS_FILE}'
 
     @classmethod
     def map_folder_exists(cls, instance: InstanceModel, map_value: int
@@ -82,7 +88,7 @@ class MapManagerService:
         Return True if the map folder exists
         """
         instance_path = PathService.get_instance_path(instance.name)
-        path = instance_path + f'/LEVEL{map_value}'
+        path = instance_path + f'/{cls.LEVEL_FOLDER_NAME}{map_value}'
         return os.path.exists(path)
 
     @classmethod
@@ -123,7 +129,7 @@ class MapManagerService:
                 'exists.'
             )
         path = PathService.get_instance_path(instance.name)
-        path += f'/LEVEL{map_value}'
+        path += f'/{cls.LEVEL_FOLDER_NAME}{map_value}'
         os.mkdir(path)
         return path
 
@@ -150,8 +156,8 @@ class MapManagerService:
                 'exist.'
             )
         instance_path = PathService.get_instance_path(instance.name)
-        path = instance_path + f'/LEVEL{map.val}'
-        dest = f'{dest}/LEVEL{map.val}_{map.name}.zip'
+        path = instance_path + f'/{cls.LEVEL_FOLDER_NAME}{map.val}'
+        dest = f'{dest}/{cls.LEVEL_FOLDER_NAME}{map.val}_{map.name}.zip'
         ZipUtils.make_zip_archive(
             path,
             dest

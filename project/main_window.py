@@ -537,7 +537,7 @@ class MainWindow(QMainWindow):
         data = DataService.get_data()
         nickname, ok = DialogService.input(
             self,
-            'Set profile nickname:',
+            'Set profile nickname: (max 10 chars)',
             data.profile.nickname
         )
         if ok:
