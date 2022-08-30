@@ -19,4 +19,11 @@ class MigrationService:
         if data.version < 3:
             data._version = 3
             data._ce_exec_file_name = 'ce.exe'
+        if data.version < 4:
+            for i in data.instances:
+                data._version = 4
+                i.properties._fov = 200
+                i.properties._mousesens = 9
+                i.properties._viewdist = 0
+                i.properties._latency = 600
         return data

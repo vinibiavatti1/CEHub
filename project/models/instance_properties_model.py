@@ -24,6 +24,12 @@ class InstancePropertiesModel:
         # Connection
         self._last_connection_name: str = None
 
+        # Game Config
+        self._fov = 200
+        self._mousesens = 9
+        self._viewdist = 600
+        self._latency = 0
+
     ###########################################################################
     # Properties
     ###########################################################################
@@ -72,6 +78,22 @@ class InstancePropertiesModel:
     def last_connection_name(self) -> str:
         return self._last_connection_name
 
+    @property
+    def fov(self) -> int:
+        return self._fov
+
+    @property
+    def mousesens(self) -> int:
+        return self._mousesens
+
+    @property
+    def viewdist(self) -> int:
+        return self._viewdist
+
+    @property
+    def latency(self) -> int:
+        return self._latency
+
     @team.setter
     def team(self, _team: str) -> None:
         self._team = _team
@@ -115,3 +137,19 @@ class InstancePropertiesModel:
     @last_connection_name.setter
     def last_connection_name(self, _name: str) -> None:
         self._last_connection_name = _name
+
+    @fov.setter
+    def fov(self, _fov: int) -> None:
+        self._fov = _fov
+
+    @mousesens.setter
+    def mousesens(self, _mousesens: int) -> None:
+        self._mousesens = _mousesens
+
+    @viewdist.setter
+    def viewdist(self, _viewdist: int) -> None:
+        self._viewdist = _viewdist
+
+    @latency.setter
+    def latency(self, _latency: int) -> None:
+        self._latency = _latency

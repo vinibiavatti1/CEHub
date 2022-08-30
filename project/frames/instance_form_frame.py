@@ -20,6 +20,7 @@ from project.enums.instance_version_enum import InstanceVersionEnum
 from project.enums.instance_type_enum import InstanceTypeEnum
 from project.enums.instance_patch_enum import InstancePatchEnum
 from project.services.data_service import DataService
+from project.services.game_config_service import GameConfigService
 from project.services.validation_service import ValidationService
 import socket
 
@@ -61,26 +62,32 @@ class InstanceFormFrame(QFrame):
         self.instance_tab = QWidget()
         self.client_tab = QWidget()
         self.server_tab = QWidget()
+        self.config_tab = QWidget()
         self.tabs.addTab(self.instance_tab, 'Instance Properties')
         self.tabs.addTab(self.client_tab, 'Client Properties')
         self.tabs.addTab(self.server_tab, 'Server Properties')
+        self.tabs.addTab(self.config_tab, 'Game Configurations')
 
         # Layouts
         self.instance_tab_layout = QVBoxLayout()
         self.client_tab_layout = QVBoxLayout()
         self.server_tab_layout = QVBoxLayout()
+        self.config_tab_layout = QVBoxLayout()
         self.instance_tab_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.client_tab_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.server_tab_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.config_tab_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.instance_tab.setLayout(self.instance_tab_layout)
         self.client_tab.setLayout(self.client_tab_layout)
         self.server_tab.setLayout(self.server_tab_layout)
+        self.config_tab.setLayout(self.config_tab_layout)
         container.addWidget(self.tabs)
 
         # Build forms
         self._build_instance_form()
         self._build_server_form()
         self._build_client_form()
+        self._build_config_form()
 
     def _build_instance_form(self) -> None:
         """
@@ -214,6 +221,50 @@ class InstanceFormFrame(QFrame):
             self.instance_game_type_field.addItem(option.value, option)
         self.server_tab_layout.addWidget(self.instance_game_type_field)
 
+    def _build_config_form(self) -> None:
+        """
+        Build game config form
+        """
+        # Fov
+        self.config_tab_layout.addWidget(QLabel(
+            f'Field of View (fov) (100 ~ 500) ' +
+            f'(Default: {GameConfigService.DEFAULT_FOV})', self
+        ))
+        self.fov_field = QSpinBox(self)
+        self.fov_field.setMinimum(100)
+        self.fov_field.setMaximum(500)
+        self.config_tab_layout.addWidget(self.fov_field)
+
+        # Mouse Sensitivity
+        self.config_tab_layout.addWidget(QLabel(
+            f'Mouse Sensitivity (mousesens) (1 ~ 20) ' +
+            f'(Default: {GameConfigService.DEFAULT_MOUSE_SENS})', self
+        ))
+        self.mousesens_field = QSpinBox(self)
+        self.mousesens_field.setMinimum(1)
+        self.mousesens_field.setMaximum(20)
+        self.config_tab_layout.addWidget(self.mousesens_field)
+
+        # View Dist
+        self.config_tab_layout.addWidget(QLabel(
+            f'View Distance (viewdist) (100 ~ 5000) ' +
+            f'(Default: {GameConfigService.DEFAULT_VIEWDIST})', self
+        ))
+        self.viewdist_field = QSpinBox(self)
+        self.viewdist_field.setMinimum(100)
+        self.viewdist_field.setMaximum(5000)
+        self.config_tab_layout.addWidget(self.viewdist_field)
+
+        # Latency
+        self.config_tab_layout.addWidget(QLabel(
+            f'Latency (latency) (0 ~ 8) ' +
+            f'(Default: {GameConfigService.DEFAULT_LATENCY})', self
+        ))
+        self.latency_field = QSpinBox(self)
+        self.latency_field.setMinimum(0)
+        self.latency_field.setMaximum(16)
+        self.config_tab_layout.addWidget(self.latency_field)
+
     def _fill_form(self) -> None:
         """
         Fill form with instance data
@@ -275,6 +326,12 @@ class InstanceFormFrame(QFrame):
             props.game_type
         )
 
+        # Game Configurations Tab
+        self.fov_field.setValue(props.fov)
+        self.mousesens_field.setValue(props.mousesens)
+        self.viewdist_field.setValue(props.viewdist)
+        self.latency_field.setValue(props.latency)
+
     def _fill_form_with_default_data(self) -> None:
         """
         Fill form with default data.
@@ -283,6 +340,10 @@ class InstanceFormFrame(QFrame):
         self.instance_host_name_field.setText(
             socket.gethostname()
         )
+        self.fov_field.setValue(GameConfigService.DEFAULT_FOV)
+        self.mousesens_field.setValue(GameConfigService.DEFAULT_MOUSE_SENS)
+        self.viewdist_field.setValue(GameConfigService.DEFAULT_VIEWDIST)
+        self.latency_field.setValue(GameConfigService.DEFAULT_LATENCY)
 
     ###########################################################################
     # Handlers
@@ -490,6 +551,7 @@ class InstanceFormFrame(QFrame):
                 instance = self.create_instance_model()
                 try:
                     SetupService.install_instance(instance)
+                    GameConfigService.save_game_configuration(instance)
                     feedback = QMessageBox()
                     feedback.information(
                         self,
@@ -516,15 +578,20 @@ class InstanceFormFrame(QFrame):
                 'Save changes?'
             )
             if answer == QMessageBox.Yes:
-                instance = self.create_instance_model()
-                data = DataService.get_data()
-                for instance_ in data.instances:
-                    if instance_.name == instance.name:
-                        data.instances.remove(instance_)
-                        data.instances.append(instance)
-                        break
-                DataService.save_data(data)
-                self.main_window.redirect_to_instance_list()
+                try:
+                    instance = self.create_instance_model()
+                    GameConfigService.save_game_configuration(instance)
+                    data = DataService.get_data()
+                    for instance_ in data.instances:
+                        if instance_.name == instance.name:
+                            data.instances.remove(instance_)
+                            data.instances.append(instance)
+                            break
+                    DataService.save_data(data)
+                    self.main_window.redirect_to_instance_list()
+                except Exception as err:
+                    message = QMessageBox()
+                    message.critical(self, 'Error', str(err))
 
     ###########################################################################
     # Form models
@@ -575,4 +642,10 @@ class InstanceFormFrame(QFrame):
             self.instance_patch_field.currentText(),
             instance_properties
         )
+
+        # Game configuration
+        instance_properties.fov = self.fov_field.value()
+        instance_properties.mousesens = self.mousesens_field.value()
+        instance_properties.viewdist = self.viewdist_field.value()
+        instance_properties.latency = self.latency_field.value()
         return instance
