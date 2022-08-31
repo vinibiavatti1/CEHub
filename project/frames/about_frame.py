@@ -46,7 +46,7 @@ class AboutFrame(QFrame):
         self._container.addWidget(QLabel('CE Multiplayer Website', self))
         app_field = QLineEdit()
         app_field.setReadOnly(True)
-        app_field.setText('https://www.codenameeaglemultiplayer.com/')
+        app_field.setText('https://codenameeaglemultiplayer.com/')
         self._container.addWidget(app_field)
 
         # Discord info
