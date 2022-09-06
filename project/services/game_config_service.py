@@ -6,17 +6,12 @@ import os
 class GameConfigService:
     """
     Game configuration service
-
-    Example of default.cfg
-    fov 200
-    mousesens 9
-    latency 0
     """
 
     DEFAULT_FOV: int = 200
     DEFAULT_MOUSE_SENS: int = 9
     DEFAULT_LATENCY: int = 0
-    DEFAULT_VIEWDIST: int = 600
+    DEFAULT_VIEWDIST: int = 3000
     FILE_NAME: str = 'default.cfg'
 
     @classmethod
