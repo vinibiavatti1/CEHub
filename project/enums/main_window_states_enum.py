@@ -12,3 +12,4 @@ class MainWindowStatesEnum(Enum):
     RUN = 4
     ABOUT = 5
     MAP_MANAGER = 6
+    SETTINGS = 7

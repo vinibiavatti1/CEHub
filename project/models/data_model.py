@@ -12,7 +12,7 @@ class DataModel:
         """
         Construct a new data model
         """
-        self._version: int = 3
+        self._version: int = 5
         self._profile: ProfileModel = ProfileModel()
         self._instances: list[InstanceModel] = []
         self._connections: list[ConnectionModel] = []

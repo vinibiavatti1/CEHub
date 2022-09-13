@@ -1,6 +1,7 @@
 from PyQt5.QtGui import QIcon
 from project.enums.instance_type_enum import InstanceTypeEnum
 from project.frames.map_manager_frame import MapManagerFrame
+from project.frames.settings_frame import SettingsFrame
 from project.models.instance_model import InstanceModel
 from project.services.data_service import DataService
 from project.services.process_service import ProcessService
@@ -143,9 +144,10 @@ class MainWindow(QMainWindow):
         Build the configuration menu
         """
         config_menu = QMenu('Configuration', self)
-        config_menu.addAction(self.set_nickname_action)
-        config_menu.addAction(self.set_drive_action)
-        config_menu.addAction(self.set_ce_exec_file)
+        # config_menu.addAction(self.set_nickname_action)
+        # config_menu.addAction(self.set_drive_action)
+        # config_menu.addAction(self.set_ce_exec_file)
+        config_menu.addAction(self.settings_action)
         self.menu_bar.addMenu(config_menu)
 
     def build_about_menu(self) -> None:
@@ -206,14 +208,10 @@ class MainWindow(QMainWindow):
             QAction(QIcon(':stop-icon'), 'Kill CE and Lobby Process', self)
         self.about_action = \
             QAction(QIcon(':about-icon'), 'About CEHub', self)
-        self.set_nickname_action = \
-            QAction(QIcon(':profile-icon'), 'Set Profile Nickname', self)
-        self.set_drive_action = \
-            QAction(QIcon(':drive-icon'), 'Set CD-ROM/ISO Drive', self)
-        self.set_ce_exec_file = \
-            QAction(QIcon(':ce-exec-icon'), 'Set CE executable file', self)
         self.map_manager_action = \
             QAction(QIcon(':map-manager-icon'), 'Map Manager', self)
+        self.settings_action = \
+            QAction(QIcon(':settings-icon'), 'Settings', self)
 
     def register_handlers(self) -> None:
         """
@@ -258,17 +256,11 @@ class MainWindow(QMainWindow):
         self.connect_action.triggered.connect(
             lambda: self.handle_run_action(True)
         )
-        self.set_nickname_action.triggered.connect(
-            lambda: self.handle_set_nickname_action()
-        )
-        self.set_drive_action.triggered.connect(
-            lambda: self.handle_set_drive_action()
-        )
-        self.set_ce_exec_file.triggered.connect(
-            lambda: self.handle_set_ce_exec_file()
-        )
         self.map_manager_action.triggered.connect(
             lambda: self.handle_map_manager_action()
+        )
+        self.settings_action.triggered.connect(
+            lambda: self.handle_settings_action()
         )
 
     ###########################################################################
@@ -295,6 +287,8 @@ class MainWindow(QMainWindow):
             self.enable_actions_to_about_state()
         elif state == MainWindowStatesEnum.MAP_MANAGER:
             self.enable_actions_to_map_manager_state()
+        elif state == MainWindowStatesEnum.SETTINGS:
+            self.enable_actions_to_settings_state()
 
     def disable_actions(self) -> None:
         """
@@ -373,6 +367,13 @@ class MainWindow(QMainWindow):
         self.open_folder_action.setDisabled(False)
         self.cancel_action.setDisabled(False)
         self.refresh_action.setDisabled(False)
+
+    def enable_actions_to_settings_state(self) -> None:
+        """
+        Enable the actions for SETTINGS state
+        """
+        self.cancel_action.setDisabled(False)
+        self.save_action.setDisabled(False)
 
     ###########################################################################
     # Redirects
@@ -502,6 +503,8 @@ class MainWindow(QMainWindow):
             self.redirect_to_instance_list()
         elif self.current_state == MainWindowStatesEnum.MAP_MANAGER:
             self.redirect_to_instance_list()
+        elif self.current_state == MainWindowStatesEnum.SETTINGS:
+            self.redirect_to_instance_list()
         else:
             answer = DialogService.question(
                 self,
@@ -530,81 +533,19 @@ class MainWindow(QMainWindow):
                 print(err)
                 DialogService.error(self, str(err))
 
-    def handle_set_nickname_action(self) -> None:
-        """
-        Handle click event to set nickname action
-        """
-        data = DataService.get_data()
-        nickname, ok = DialogService.input(
-            self,
-            'Set profile nickname: (max 10 chars)',
-            data.profile.nickname
-        )
-        if ok:
-            try:
-                ValidationService.validate_nickname(nickname)
-                data.profile.nickname = nickname
-                DataService.save_data(data)
-                DialogService.info(self, 'Nickname updated successfully')
-                self.refresh_statusbar()
-                self.refresh_window_title()
-            except ValueError as err:
-                DialogService.error(self, str(err))
-
-    def handle_set_ce_exec_file(self) -> None:
-        """
-        Set the CE executable name.
-        """
-        data = DataService.get_data()
-        answer, ok = DialogService.input(
-            self,
-            'Enter the CE executable file. Normally, the executable file is ' +
-            '"ce.exe" or "game.exe"',
-            data.ce_exec_file_name
-        )
-        if not ok:
-            return
-        answer = answer.strip()
-        if len(answer) == 0:
-            return
-        data.ce_exec_file_name = answer
-        DataService.save_data(data)
-        DialogService.info(self, 'CE executable name changed successfully')
-
-    def handle_set_drive_action(self) -> None:
-        """
-        Handle click event to set CD-ROM drive action
-        """
-        data = DataService.get_data()
-        answer = DialogService.question(
-            self,
-            'The Codename Eagle registry drive key will be added/updated in ' +
-            'Windows Registry Editor. This action usually needs elevated ' +
-            'permission. Proceed?'
-        )
-        if not answer:
-            return
-        drive, ok = DialogService.combobox(
-            self,
-            'Select the CD-ROM/ISO drive:',
-            [d + ':' for d in MainWindow.DRIVES],
-            data.cd_drive
-        )
-        if ok:
-            try:
-                WinRegService.update_drive_key(drive)
-                data.cd_drive = drive
-                DataService.save_data(data)
-                DialogService.info(self, 'Registry updated successfully')
-            except Exception as err:
-                DialogService.error(self, str(err))
-
     def handle_map_manager_action(self) -> None:
         """
         Handle map manager option click event
         """
         self.set_central_widget(MapManagerFrame(self, self.current_instance))
         self.set_actions_state(MainWindowStatesEnum.MAP_MANAGER)
+
+    def handle_settings_action(self) -> None:
+        """
+        Handle settings action event
+        """
+        self.set_central_widget(SettingsFrame(self))
+        self.set_actions_state(MainWindowStatesEnum.SETTINGS)
 
     ###########################################################################
     # Refreshes

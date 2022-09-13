@@ -15,6 +15,7 @@ from project.enums.game_team_enum import GameTeamEnum
 from project.enums.game_type_enum import GameTypeEnum
 from project.models.instance_model import InstanceModel
 from project.models.instance_properties_model import InstancePropertiesModel
+from project.services.dialog_service import DialogService
 from project.services.setup_service import SetupService
 from project.enums.instance_version_enum import InstanceVersionEnum
 from project.enums.instance_type_enum import InstanceTypeEnum
@@ -541,30 +542,33 @@ class InstanceFormFrame(QFrame):
         Call the SetupService to install the instance
         """
         if self.validate_forms():
-            confirm = QMessageBox()
-            answer = confirm.question(
+            ok = DialogService.question(
                 self,
-                'Confirmation',
                 'The instance will be installed. Proceed?'
             )
-            if answer == QMessageBox.Yes:
-                instance = self.create_instance_model()
-                try:
-                    SetupService.install_instance(instance)
-                    GameConfigService.save_game_configuration(instance)
-                    feedback = QMessageBox()
-                    feedback.information(
-                        self,
-                        'Information',
-                        f'Instance "{instance.name}" installed successfully'
-                    )
-                    data = DataService.get_data()
-                    data.instances.append(instance)
-                    DataService.save_data(data)
-                    self.parent().redirect_to_instance_list()
-                except Exception as err:
-                    message = QMessageBox()
-                    message.critical(self, 'Error', str(err))
+            if not ok:
+                return
+            instance = self.create_instance_model()
+            try:
+                DialogService.progress(
+                    self,
+                    'Installing instance...',
+                    lambda: SetupService.install_instance(instance)
+                )
+                GameConfigService.save_game_configuration(instance)
+                feedback = QMessageBox()
+                feedback.information(
+                    self,
+                    'Information',
+                    f'Instance "{instance.name}" installed successfully'
+                )
+                data = DataService.get_data()
+                data.instances.append(instance)
+                DataService.save_data(data)
+                self.parent().redirect_to_instance_list()
+            except Exception as err:
+                message = QMessageBox()
+                message.critical(self, 'Error', str(err))
 
     def save(self):
         """

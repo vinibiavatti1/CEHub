@@ -1,4 +1,13 @@
-from PyQt5.QtWidgets import QInputDialog, QMessageBox
+import threading
+from typing import Any, Callable, Optional
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import (
+    QInputDialog,
+    QMessageBox,
+    QProgressDialog,
+    QProgressBar,
+    QApplication,
+)
 
 
 class DialogService:
@@ -86,3 +95,33 @@ class DialogService:
         msg = QMessageBox()
         answer = msg.question(parent, 'Question', message)
         return True if answer == QMessageBox.Yes else False
+
+    ###########################################################################
+    # Progress
+    ###########################################################################
+
+    @classmethod
+    def progress(cls, parent: Any, message: str, action: Callable[[], None],
+                 cancel_button_label: Optional[str] = None) -> None:
+        """
+        Show a progress bar dialog and process action in thread.
+        """
+        dialog = QProgressDialog(
+            message, 'cancel btn', 0, 0, parent
+        )
+        if cancel_button_label is not None:
+            dialog.setCancelButtonText(cancel_button_label)
+        else:
+            dialog.setCancelButton(None)
+        bar = QProgressBar(dialog)
+        bar.setTextVisible(False)
+        bar.setMinimum(0)
+        bar.setMaximum(0)
+        dialog.setBar(bar)
+        dialog.setWindowFlags(dialog.windowFlags() & ~Qt.WindowCloseButtonHint)
+        thread = threading.Thread(target=action)
+        dialog.show()
+        thread.start()
+        while thread.is_alive():
+            QApplication.processEvents()
+        dialog.close()
