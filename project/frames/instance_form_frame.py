@@ -23,8 +23,6 @@ from project.enums.instance_patch_enum import InstancePatchEnum
 from project.services.data_service import DataService
 from project.services.game_config_service import GameConfigService
 from project.services.validation_service import ValidationService
-from project.app_info import AppInfo
-from project.services.winreg_service import WinRegService
 import socket
 
 
@@ -440,9 +438,9 @@ class InstanceFormFrame(QFrame):
             self.info_label.setText(
                 'Note: The Single Player requires the Codename Eagle CD ' +
                 'to be executed. It is recommended to use an ISO image ' +
-                'mounted into a drive. Administrator permission is required ' +
-                'to set the drive registry key into regedit. Make sure ' +
-                f'{AppInfo.TITLE} was executed as Administrator.'
+                'mounted into a drive. The default drive must be set by the ' +
+                '"Configuration > Set CD-ROM/ISO Drive" menu to make the ' +
+                'game to find the media location.'
             )
         elif value == InstanceTypeEnum.MAP_EDITOR.value:
             self.server_tab.setDisabled(True)
@@ -543,45 +541,34 @@ class InstanceFormFrame(QFrame):
         """
         Call the SetupService to install the instance
         """
-        if not self.validate_forms():
-            return
-
-        # Check if instance is Single Player to set the Drive registry key
-        if (self.instance_type_field.currentText() ==
-                InstanceTypeEnum.SP.value):
-            done = self.__set_drive_registry()
-            if not done:
+        if self.validate_forms():
+            ok = DialogService.question(
+                self,
+                'The instance will be installed. Proceed?'
+            )
+            if not ok:
                 return
-
-        ok = DialogService.question(
-            self,
-            'The instance will be installed. Proceed?'
-        )
-        if not ok:
-            return
-
-        # Setup Instance
-        instance = self.create_instance_model()
-        try:
-            DialogService.progress(
-                self,
-                'Installing instance...',
-                lambda: SetupService.install_instance(instance)
-            )
-            GameConfigService.save_game_configuration(instance)
-            feedback = QMessageBox()
-            feedback.information(
-                self,
-                'Information',
-                f'Instance "{instance.name}" installed successfully'
-            )
-            data = DataService.get_data()
-            data.instances.append(instance)
-            DataService.save_data(data)
-            self.parent().redirect_to_instance_list()
-        except Exception as err:
-            message = QMessageBox()
-            message.critical(self, 'Error', str(err))
+            instance = self.create_instance_model()
+            try:
+                DialogService.progress(
+                    self,
+                    'Installing instance...',
+                    lambda: SetupService.install_instance(instance)
+                )
+                GameConfigService.save_game_configuration(instance)
+                feedback = QMessageBox()
+                feedback.information(
+                    self,
+                    'Information',
+                    f'Instance "{instance.name}" installed successfully'
+                )
+                data = DataService.get_data()
+                data.instances.append(instance)
+                DataService.save_data(data)
+                self.parent().redirect_to_instance_list()
+            except Exception as err:
+                message = QMessageBox()
+                message.critical(self, 'Error', str(err))
 
     def save(self):
         """
@@ -609,30 +596,6 @@ class InstanceFormFrame(QFrame):
                 except Exception as err:
                     message = QMessageBox()
                     message.critical(self, 'Error', str(err))
-
-    def __set_drive_registry(self) -> bool:
-        ok = DialogService.question(
-            self,
-            f'An instance of type "Single Player" requires Administrator '
-            f'Privileges to set the CD-ROM/ISO drive registry keys into '
-            f'regedit. Make sure {AppInfo.TITLE} was initialized as '
-            f'Administrator. Proceed?'
-        )
-        if not ok:
-            return False
-        try:
-            data = DataService.get_data()
-            WinRegService.update_drive_key(data._cd_drive)
-            DialogService.info(
-                self,
-                'Drive registry key was set successfully. To change the '
-                'current drive, access "Configuration > Settings".'
-            )
-            return True
-        except Exception as err:
-            message = QMessageBox()
-            message.critical(self, 'Error', str(err))
-            return False
 
     ###########################################################################
     # Form models
