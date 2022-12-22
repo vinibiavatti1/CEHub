@@ -291,8 +291,8 @@ class InstanceRunFrame(QFrame):
                     message = 'Please, insert the CR-ROM or mount the CE ' \
                         f'image file into {cd_drive} drive to start the ' \
                         'single player instance. If this drive is not ' \
-                        'correct, access the menu "Configuration > Set ' \
-                        'CD-ROM/ISO Drive" to select the correct one.'
+                        'correct, access the menu "Configuration > ' \
+                        'Settings" to select the correct one.'
                     DialogService.error(self, message)
                     return
             ProcessService.execute(

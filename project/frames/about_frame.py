@@ -46,14 +46,14 @@ class AboutFrame(QFrame):
         self._container.addWidget(QLabel('CE Multiplayer Website', self))
         app_field = QLineEdit()
         app_field.setReadOnly(True)
-        app_field.setText('https://codenameeaglemultiplayer.com/')
+        app_field.setText('https://cenation.co.uk/')
         self._container.addWidget(app_field)
 
         # Discord info
         self._container.addWidget(QLabel('Discord Community', self))
         app_field = QLineEdit()
         app_field.setReadOnly(True)
-        app_field.setText('https://discord.gg/gGaMUJA9st')
+        app_field.setText('https://discord.gg/VGW9AaQJne')
         self._container.addWidget(app_field)
 
         # Reddit info
