@@ -23,6 +23,8 @@ from project.enums.instance_patch_enum import InstancePatchEnum
 from project.services.data_service import DataService
 from project.services.game_config_service import GameConfigService
 from project.services.validation_service import ValidationService
+from project.services.winreg_service import WinRegService
+from project.services.ce_drive_service import CEDriveService
 import socket
 
 
@@ -31,6 +33,7 @@ class InstanceFormFrame(QFrame):
     Instance form add/edit frame
     """
 
+    DRIVES = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
     DEFAULT_HOST_PORT = 24711
 
     def __init__(self, main_window, instance: InstanceModel = None) -> None:
@@ -438,9 +441,10 @@ class InstanceFormFrame(QFrame):
             self.info_label.setText(
                 'Note: The Single Player requires the Codename Eagle CD ' +
                 'to be executed. It is recommended to use an ISO image ' +
-                'mounted into a drive. The default drive must be set by the ' +
-                '"Configuration > Set CD-ROM/ISO Drive" menu to make the ' +
-                'game to find the media location.'
+                'mounted into a drive. Administrator Privileges are ' +
+                'required to makes the application able to set the drive ' +
+                'into regedit. Make sure the application was opened as ' +
+                'Administrator!'
             )
         elif value == InstanceTypeEnum.MAP_EDITOR.value:
             self.server_tab.setDisabled(True)
@@ -541,34 +545,43 @@ class InstanceFormFrame(QFrame):
         """
         Call the SetupService to install the instance
         """
-        if self.validate_forms():
-            ok = DialogService.question(
-                self,
-                'The instance will be installed. Proceed?'
-            )
-            if not ok:
+        if not self.validate_forms():
+            return
+
+        # Set drive key for SP instance
+        if self.instance_type_field.currentText() == InstanceTypeEnum.SP.value:
+            done = self._sp_pre_setup()
+            if not done:
                 return
-            instance = self.create_instance_model()
-            try:
-                DialogService.progress(
-                    self,
-                    'Installing instance...',
-                    lambda: SetupService.install_instance(instance)
-                )
-                GameConfigService.save_game_configuration(instance)
-                feedback = QMessageBox()
-                feedback.information(
-                    self,
-                    'Information',
-                    f'Instance "{instance.name}" installed successfully'
-                )
-                data = DataService.get_data()
-                data.instances.append(instance)
-                DataService.save_data(data)
-                self.parent().redirect_to_instance_list()
-            except Exception as err:
-                message = QMessageBox()
-                message.critical(self, 'Error', str(err))
+
+        # Initialize setup
+        ok = DialogService.question(
+            self,
+            'The instance will be installed. Proceed?'
+        )
+        if not ok:
+            return
+        instance = self.create_instance_model()
+        try:
+            DialogService.progress(
+                self,
+                'Installing instance...',
+                lambda: SetupService.install_instance(instance)
+            )
+            GameConfigService.save_game_configuration(instance)
+            feedback = QMessageBox()
+            feedback.information(
+                self,
+                'Information',
+                f'Instance "{instance.name}" installed successfully'
+            )
+            data = DataService.get_data()
+            data.instances.append(instance)
+            DataService.save_data(data)
+            self.parent().redirect_to_instance_list()
+        except Exception as err:
+            message = QMessageBox()
+            message.critical(self, 'Error', str(err))
 
     def save(self):
         """
@@ -596,6 +609,43 @@ class InstanceFormFrame(QFrame):
                 except Exception as err:
                     message = QMessageBox()
                     message.critical(self, 'Error', str(err))
+
+    def _sp_pre_setup(self) -> bool:
+        drive, ok = DialogService.combobox(
+            self,
+            'Please, insert the CD-ROM/ISO image into a drive and select '
+            'the drive. (Requires elevated permission):',
+            [d + ':' for d in InstanceFormFrame.DRIVES],
+            DataService.get_data().cd_drive
+        )
+        if not ok:
+            return False
+
+        # Validate if CD/ISO is available
+        drive_exists = CEDriveService.validate_ce_drive_exists(
+            drive
+        )
+        if not drive_exists:
+            DialogService.error(
+                self,
+                f'Could not find Codename Eagle CD/ISO data in the '
+                f'{drive} drive. Please, insert the CD-ROM or mount the '
+                'ISO image and select the correct drive to proceed with '
+                'the installation.'
+            )
+            return False
+
+        data = DataService.get_data()
+        data.cd_drive = drive
+        DataService.save_data(data)
+
+        try:
+            WinRegService.update_drive_key(drive)
+            return True
+        except Exception as err:
+            message = QMessageBox()
+            message.critical(self, 'Error', str(err))
+            return False
 
     ###########################################################################
     # Form models

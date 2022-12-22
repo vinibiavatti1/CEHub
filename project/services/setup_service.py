@@ -4,12 +4,15 @@ from project.enums.instance_version_enum import InstanceVersionEnum
 from project.models.instance_model import InstanceModel
 from project.services.data_service import DataService
 from project.services.path_service import PathService
+import subprocess
 import zipfile
 import os
 import shutil
 
 
 class SetupService:
+
+    GAME_POST_SETUP_EXE = 'Game.exe'
 
     ###########################################################################
     # Public methods
@@ -24,6 +27,7 @@ class SetupService:
         cls._create_instance_folder(instance.name)
         if instance.version == InstanceVersionEnum.FULL.value:
             cls._install_full_version(instance)
+            cls._execute_game_exe(instance)
         elif instance.version == InstanceVersionEnum.MP_DEMO_OFFICIAL.value:
             cls._install_mp_demo_official(instance)
         elif instance.version == InstanceVersionEnum.MP_DEMO_DAFOOSA.value:
@@ -94,6 +98,19 @@ class SetupService:
         Install the multiplayer demo (Myg's version)
         """
         cls._unzip_game_file(ZipEnum.ZIP_MYG, instance.name)
+
+    @classmethod
+    def _execute_game_exe(cls, instance: InstanceModel) -> None:
+        """
+        Execute Game.exe for full installation as post setup, to
+        activate the game.
+        """
+        instance_path = PathService.get_instance_path(instance.name)
+        subprocess.run(
+            [cls.GAME_POST_SETUP_EXE],
+            shell=True,
+            cwd=instance_path
+        )
 
     ###########################################################################
     # Utils

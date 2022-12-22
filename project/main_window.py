@@ -144,10 +144,8 @@ class MainWindow(QMainWindow):
         Build the configuration menu
         """
         config_menu = QMenu('Configuration', self)
-        # config_menu.addAction(self.set_nickname_action)
-        # config_menu.addAction(self.set_drive_action)
-        # config_menu.addAction(self.set_ce_exec_file)
         config_menu.addAction(self.settings_action)
+        config_menu.addAction(self.define_drive_action)
         self.menu_bar.addMenu(config_menu)
 
     def build_about_menu(self) -> None:
@@ -212,6 +210,8 @@ class MainWindow(QMainWindow):
             QAction(QIcon(':map-manager-icon'), 'Map Manager', self)
         self.settings_action = \
             QAction(QIcon(':settings-icon'), 'Settings', self)
+        self.define_drive_action = \
+            QAction(QIcon(':drive-icon'), 'Set CD-ROM/ISO Drive', self)
 
     def register_handlers(self) -> None:
         """
@@ -261,6 +261,9 @@ class MainWindow(QMainWindow):
         )
         self.settings_action.triggered.connect(
             lambda: self.handle_settings_action()
+        )
+        self.define_drive_action.triggered.connect(
+            lambda: self.handle_define_drive_action()
         )
 
     ###########################################################################
@@ -546,6 +549,41 @@ class MainWindow(QMainWindow):
         """
         self.set_central_widget(SettingsFrame(self))
         self.set_actions_state(MainWindowStatesEnum.SETTINGS)
+
+    def handle_define_drive_action(self) -> None:
+        """
+        Open frame to update CD/ISO drive.
+        """
+        ok = DialogService.question(
+            self,
+            'Change CD-ROM/ISO drive. This operation needs elevated '
+            'permissions to be executed. Make sure the application was '
+            'started as Administrator. Proceed?'
+        )
+        if not ok:
+            return
+        drive, ok = DialogService.combobox(
+            self,
+            'Select the drive:',
+            [d + ':' for d in InstanceFormFrame.DRIVES],
+            DataService.get_data().cd_drive
+        )
+        if not ok:
+            return
+        try:
+            WinRegService.update_drive_key(drive)
+            data = DataService.get_data()
+            data.cd_drive = drive
+            DataService.save_data(data)
+            DialogService.info(
+                self,
+                'Drive updated successfully!'
+            )
+        except Exception as err:
+            DialogService.error(
+                self,
+                'Could not update drive: ' + str(err)
+            )
 
     ###########################################################################
     # Refreshes

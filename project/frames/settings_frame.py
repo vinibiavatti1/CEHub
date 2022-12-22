@@ -62,16 +62,6 @@ class SettingsFrame(QFrame):
         self._executable_command_field.setCurrentText(data.ce_exec_file_name)
         self._container.addWidget(self._executable_command_field)
 
-        # CD-ROM drive
-        self._container.addWidget(QLabel(
-            'CD-ROM Drive: (Default: E:) (Requires Elevated Permission)'
-        ))
-        self._drive_field = QComboBox(self)
-        for drive in SettingsFrame.DRIVES:
-            self._drive_field.addItem(drive + ':')
-        self._drive_field.setCurrentText(data.cd_drive)
-        self._container.addWidget(self._drive_field)
-
     def save(self) -> None:
         """
         Save changes.
@@ -80,26 +70,3 @@ class SettingsFrame(QFrame):
         data.profile.nickname = self._profile_name_field.text()
         data.ce_exec_file_name = self._executable_command_field.currentText()
         DataService.save_data(data)
-
-        drive = self._drive_field.currentText()
-        if drive == data.cd_drive:
-            return
-
-        answer = DialogService.question(
-            self,
-            'The Codename Eagle registry drive key will be added/updated in ' +
-            'Windows Registry Editor. This action usually needs elevated ' +
-            'permission. Proceed?'
-        )
-        if not answer:
-            return
-
-        # CD-ROM drive
-        try:
-            WinRegService.update_drive_key(drive)
-            data.cd_drive = drive
-            DataService.save_data(data)
-        except Exception as err:
-            DialogService.error(
-                self, f'Could not update CD-Drive in registry: {err}'
-            )

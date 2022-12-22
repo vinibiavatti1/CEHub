@@ -73,7 +73,7 @@ class DialogService:
         """
         Render an combobox input dialog
         """
-        current_index = None
+        current_index = 0
         if current:
             for i, item in enumerate(items):
                 if item == current:
