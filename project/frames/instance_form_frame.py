@@ -541,18 +541,18 @@ class InstanceFormFrame(QFrame):
     # Actions
     ###########################################################################
 
-    def setup(self) -> None:
+    def setup(self) -> bool:
         """
         Call the SetupService to install the instance
         """
         if not self.validate_forms():
-            return
+            return False
 
         # Set drive key for SP instance
         if self.instance_type_field.currentText() == InstanceTypeEnum.SP.value:
             done = self._sp_pre_setup()
             if not done:
-                return
+                return False
 
         # Initialize setup
         ok = DialogService.question(
@@ -560,7 +560,7 @@ class InstanceFormFrame(QFrame):
             'The instance will be installed. Proceed?'
         )
         if not ok:
-            return
+            return False
         instance = self.create_instance_model()
         try:
             DialogService.progress(
@@ -579,9 +579,11 @@ class InstanceFormFrame(QFrame):
             data.instances.append(instance)
             DataService.save_data(data)
             self.parent().redirect_to_instance_list()
+            return True
         except Exception as err:
             message = QMessageBox()
             message.critical(self, 'Error', str(err))
+            return False
 
     def save(self):
         """

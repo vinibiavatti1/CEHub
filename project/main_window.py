@@ -488,9 +488,10 @@ class MainWindow(QMainWindow):
         """
         Handle click event to setup instance action
         """
-        self.central_widget.setup()
-        self.refresh_statusbar()
-        self.refresh_window_title()
+        done = self.central_widget.setup()
+        if done:
+            self.refresh_statusbar()
+            self.refresh_window_title()
 
     def handle_cancel_action(self) -> None:
         """
