@@ -126,7 +126,11 @@ class DataModel:
         """
         self._connections.append(
             ConnectionModel(
-                'codenameeaglemultiplayer.com',
+                'EU Server',
                 '89.38.98.12:24711'
+            ),
+            ConnectionModel(
+                'US Server',
+                '67.199.173.146:24711'
             )
         )
